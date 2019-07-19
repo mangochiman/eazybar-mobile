@@ -23,7 +23,121 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: Center(child: Text('Bar stats go here!')),
+      body: Container(
+      child: Column(
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                    padding: const EdgeInsets.all(40.0),
+                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
+                    decoration: new BoxDecoration(
+                        border: new Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(12.0),
+                        boxShadow: [BoxShadow(
+                          color: Colors.blueAccent,
+                          blurRadius: 5.0,
+                        ),]
+                    ),
+
+                    child: new Text("Debtors")
+                ),
+
+              ),
+              Expanded(
+                child: Container(
+                    padding: const EdgeInsets.all(40.0),
+                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
+                    decoration: new BoxDecoration(
+                        border: new Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(12.0),
+                        boxShadow: [BoxShadow(
+                          color: Colors.blueAccent,
+                          blurRadius: 5.0,
+                        ),]
+                    ),
+                    child: new Text("Damages")
+                ),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                    padding: const EdgeInsets.all(40.0),
+                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
+                    decoration: new BoxDecoration(
+                        border: new Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(12.0),
+                        boxShadow: [BoxShadow(
+                          color: Colors.blueAccent,
+                          blurRadius: 5.0,
+                        ),]
+                    ),
+                    child: new Text("Complementary")
+                ),
+
+              ),
+              Expanded(
+                child: Container(
+                    padding: const EdgeInsets.all(40.0),
+                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
+                    decoration: new BoxDecoration(
+                        border: new Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(12.0),
+                        boxShadow: [BoxShadow(
+                          color: Colors.blueAccent,
+                          blurRadius: 5.0,
+                        ),]
+                    ),
+                    child: new Text("User accounts")
+                ),
+              )
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                    padding: const EdgeInsets.all(40.0),
+                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
+                    decoration: new BoxDecoration(
+                        border: new Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(12.0),
+                        boxShadow: [BoxShadow(
+                          color: Colors.blueAccent,
+                          blurRadius: 5.0,
+                        ),]
+                    ),
+                    child: new Text("Low stock")
+                ),
+
+              ),
+              Expanded(
+                child: Container(
+                    padding: const EdgeInsets.all(40.0),
+                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
+                    decoration: new BoxDecoration(
+                        border: new Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(12.0),
+                        boxShadow: [BoxShadow(
+                          color: Colors.blueAccent,
+                          blurRadius: 5.0,
+                        ),]
+                    ),
+                    child: new Text("Out of stock")
+                ),
+              )
+            ],
+          )
+        ],
+      ),
+
+
+
+      ),
       drawer: Drawer(
         // Add a ListView to the drawer. This ensures the user can scroll
         // through the options in the drawer if there isn't enough vertical
