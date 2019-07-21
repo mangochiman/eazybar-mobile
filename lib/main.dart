@@ -3,13 +3,85 @@ import 'package:flutter/material.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  final appTitle = 'eazy Bar';
+  final appTitle = 'Mahara Wiphar Bar';
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: appTitle,
       home: MyHomePage(title: appTitle),
+    );
+  }
+}
+
+class DebtorsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Debtors'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class DamagesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Damages'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class ComplementaryPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Complementary'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class UserAccountsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('User accounts'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class ProductsRunningOutOfStockPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Products running low'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class ProductsOutOfStockPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Products out of stock'),
+      ),
+      body: Center(),
     );
   }
 }
@@ -23,120 +95,205 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: Container(
-      child: Column(
+      body: GridView.count(
+        crossAxisCount: 2,
+        padding: EdgeInsets.all(16.0),
+        childAspectRatio: 8.0 / 9.0,
+        // TODO: Build a grid of cards (102)
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                    padding: const EdgeInsets.all(40.0),
-                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
-                    decoration: new BoxDecoration(
-                        border: new Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [BoxShadow(
-                          color: Colors.blueAccent,
-                          blurRadius: 5.0,
-                        ),]
+          Card(
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    AspectRatio(
+                      aspectRatio: 15.0 / 6.0,
+                      child: Icon(Icons.arrow_forward_ios,
+                          color: Colors.blueAccent),
                     ),
-
-                    child: new Text("Debtors")
-                ),
-
-              ),
-              Expanded(
-                child: Container(
-                    padding: const EdgeInsets.all(40.0),
-                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
-                    decoration: new BoxDecoration(
-                        border: new Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [BoxShadow(
-                          color: Colors.blueAccent,
-                          blurRadius: 5.0,
-                        ),]
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text('Debtors'),
+                          SizedBox(height: 8.0),
+                          Text('20',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
-                    child: new Text("Damages")
+                  ],
                 ),
-              )
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                    padding: const EdgeInsets.all(40.0),
-                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
-                    decoration: new BoxDecoration(
-                        border: new Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [BoxShadow(
-                          color: Colors.blueAccent,
-                          blurRadius: 5.0,
-                        ),]
-                    ),
-                    child: new Text("Complementary")
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => DebtorsPage()),
+                  );
+                },
+              )),
+          Card(
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      AspectRatio(
+                        aspectRatio: 15.0 / 6.0,
+                        child: Icon(Icons.arrow_forward_ios,
+                            color: Colors.blueAccent),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('Damages'),
+                            SizedBox(height: 8.0),
+                            Text('5',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => DamagesPage()),
+                    );
+                  })),
+          Card(
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      AspectRatio(
+                        aspectRatio: 15.0 / 6.0,
+                        child: Icon(Icons.arrow_forward_ios,
+                            color: Colors.blueAccent),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('Complementary'),
+                            SizedBox(height: 8.0),
+                            Text('5',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ComplementaryPage()),
+                    );
+                  })),
+          Card(
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      AspectRatio(
+                        aspectRatio: 15.0 / 6.0,
+                        child: Icon(Icons.arrow_forward_ios,
+                            color: Colors.blueAccent),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('User accounts'),
+                            SizedBox(height: 8.0),
+                            Text('2',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => UserAccountsPage()),
+                    );
+                  })),
+          Card(
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      AspectRatio(
+                        aspectRatio: 15.0 / 6.0,
+                        child: Icon(Icons.arrow_forward_ios,
+                            color: Colors.blueAccent),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('Products running out of stock'),
+                            SizedBox(height: 8.0),
+                            Text('13',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ProductsRunningOutOfStockPage()),
+                    );
+                  })),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                AspectRatio(
+                  aspectRatio: 15.0 / 6.0,
+                  child:
+                      Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
                 ),
-
-              ),
-              Expanded(
-                child: Container(
-                    padding: const EdgeInsets.all(40.0),
-                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
-                    decoration: new BoxDecoration(
-                        border: new Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [BoxShadow(
-                          color: Colors.blueAccent,
-                          blurRadius: 5.0,
-                        ),]
-                    ),
-                    child: new Text("User accounts")
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text('Products out of stock'),
+                      SizedBox(height: 8.0),
+                      Text('0', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ),
-              )
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                    padding: const EdgeInsets.all(40.0),
-                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
-                    decoration: new BoxDecoration(
-                        border: new Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [BoxShadow(
-                          color: Colors.blueAccent,
-                          blurRadius: 5.0,
-                        ),]
-                    ),
-                    child: new Text("Low stock")
-                ),
-
-              ),
-              Expanded(
-                child: Container(
-                    padding: const EdgeInsets.all(40.0),
-                    margin: const EdgeInsets.only(top: 10.0, left: 5.0, bottom: 14.0, right: 5),
-                    decoration: new BoxDecoration(
-                        border: new Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [BoxShadow(
-                          color: Colors.blueAccent,
-                          blurRadius: 5.0,
-                        ),]
-                    ),
-                    child: new Text("Out of stock")
-                ),
-              )
-            ],
+              ],
+            ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ProductsOutOfStockPage()),
+                  );
+                }
+            )
           )
         ],
-      ),
-
-
-
       ),
       drawer: Drawer(
         // Add a ListView to the drawer. This ensures the user can scroll
@@ -172,31 +329,31 @@ class MyHomePage extends StatelessWidget {
             ),
             ListTile(
               title: Text('Products'),
-              onTap: (){
+              onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
               title: Text('User accounts'),
-              onTap: (){
+              onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
               title: Text('Reports'),
-              onTap: (){
+              onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
               title: Text('Settings'),
-              onTap: (){
+              onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
               title: Text('Logout'),
-              onTap: (){
+              onTap: () {
                 Navigator.pop(context);
               },
             ),
