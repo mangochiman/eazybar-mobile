@@ -14,6 +14,78 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class StockCardMainPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Stock card'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class PricingMainPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Pricing'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class ProductsMainPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Products'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class UserAccountsMainPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('User accounts'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class ReportsMainPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Reports'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class SettingsMainPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Settings'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
 class DebtorsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -454,6 +526,10 @@ class MyHomePage extends StatelessWidget {
                 // ...
                 // Then close the drawer
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StockCardMainPage()),
+                );
               },
             ),
             ListTile(
@@ -463,30 +539,50 @@ class MyHomePage extends StatelessWidget {
                 // ...
                 // Then close the drawer
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PricingMainPage()),
+                );
               },
             ),
             ListTile(
               title: Text('Products'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProductsMainPage()),
+                );
               },
             ),
             ListTile(
               title: Text('User accounts'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserAccountsMainPage()),
+                );
               },
             ),
             ListTile(
               title: Text('Reports'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ReportsMainPage()),
+                );
               },
             ),
             ListTile(
               title: Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsMainPage()),
+                );
               },
             ),
             ListTile(
