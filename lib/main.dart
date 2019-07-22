@@ -21,7 +21,30 @@ class DebtorsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Debtors'),
       ),
-      body: Center(),
+      body: ListView(
+        children: const <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('Jon Doe'),
+              subtitle: Text(
+                  'Amount owed: MK5,000 | Date: 01-July-2019 | Amount paid: MK 0.0 | Balance: MK5,000 | Phone #:01200200'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: Text('Doe Jon'),
+              subtitle: Text(
+                  'Amount owed: MK5,000 | Date: 01-July-2019 | Amount paid: MK 0.0 | Balance: MK5,000 | Phone #:01200200'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -33,7 +56,30 @@ class DamagesPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Damages'),
       ),
-      body: Center(),
+      body: ListView(
+        children: const <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('Ginger'),
+              subtitle: Text(
+                  'Date: 01-July-2019 | Damaged quantity: 2 | Product price: MK400 | Total amount: MK800'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: Text('Lays'),
+              subtitle: Text(
+                  'Date: 01-July-2019 | Damaged quantity: 2 | Product price: MK400 | Total amount: MK800'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -45,7 +91,30 @@ class ComplementaryPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Complementary'),
       ),
-      body: Center(),
+      body: ListView(
+        children: const <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('Ginger'),
+              subtitle: Text(
+                  'Date: 01-July-2019 | Complementary quantity: 2 | Product price: MK400 | Total amount: MK800'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: Text('Lays'),
+              subtitle: Text(
+                  'Date: 01-July-2019 | Complementary quantity: 2 | Product price: MK400 | Total amount: MK800'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -57,7 +126,30 @@ class UserAccountsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('User accounts'),
       ),
-      body: Center(),
+      body: ListView(
+        children: const <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('First user'),
+              subtitle: Text(
+                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: Text('Second user'),
+              subtitle: Text(
+                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -69,7 +161,30 @@ class ProductsRunningOutOfStockPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Products running low'),
       ),
-      body: Center(),
+      body: ListView(
+        children: const <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('Gualana'),
+              subtitle: Text(
+                  'Minimum required: 12 | Product category: Standard | Current stock: 7'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: Text('Castel'),
+              subtitle: Text(
+                  'Minimum required: 40 | Product category: Standard | Current stock: 33'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -81,7 +196,30 @@ class ProductsOutOfStockPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Products out of stock'),
       ),
-      body: Center(),
+      body: ListView(
+        children: const <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('Gualana'),
+              subtitle: Text(
+                  'Minimum required: 12 | Product category: Standard | Current stock: 0'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: Text('Castel'),
+              subtitle: Text(
+                  'Minimum required: 40 | Product category: Standard | Current stock: 0'
+              ),
+              isThreeLine: true,
+
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -278,7 +416,7 @@ class MyHomePage extends StatelessWidget {
                     children: <Widget>[
                       Text('Products out of stock'),
                       SizedBox(height: 8.0),
-                      Text('0', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('8', style: TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
