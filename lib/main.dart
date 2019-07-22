@@ -92,6 +92,14 @@ class DebtorsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Debtors'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+
+            },
+          )
+        ],
       ),
       body: ListView(
         children: const <Widget>[
@@ -99,20 +107,16 @@ class DebtorsPage extends StatelessWidget {
             child: ListTile(
               title: Text('Jon Doe'),
               subtitle: Text(
-                  'Amount owed: MK5,000 | Date: 01-July-2019 | Amount paid: MK 0.0 | Balance: MK5,000 | Phone #:01200200'
-              ),
+                  'Amount owed: MK5,000 | Date: 01-July-2019 | Amount paid: MK 0.0 | Balance: MK5,000 | Phone #:01200200'),
               isThreeLine: true,
-
             ),
           ),
           Card(
             child: ListTile(
               title: Text('Doe Jon'),
               subtitle: Text(
-                  'Amount owed: MK5,000 | Date: 01-July-2019 | Amount paid: MK 0.0 | Balance: MK5,000 | Phone #:01200200'
-              ),
+                  'Amount owed: MK5,000 | Date: 01-July-2019 | Amount paid: MK 0.0 | Balance: MK5,000 | Phone #:01200200'),
               isThreeLine: true,
-
             ),
           ),
         ],
@@ -134,20 +138,16 @@ class DamagesPage extends StatelessWidget {
             child: ListTile(
               title: Text('Ginger'),
               subtitle: Text(
-                  'Date: 01-July-2019 | Damaged quantity: 2 | Product price: MK400 | Total amount: MK800'
-              ),
+                  'Date: 01-July-2019 | Damaged quantity: 2 | Product price: MK400 | Total amount: MK800'),
               isThreeLine: true,
-
             ),
           ),
           Card(
             child: ListTile(
               title: Text('Lays'),
               subtitle: Text(
-                  'Date: 01-July-2019 | Damaged quantity: 2 | Product price: MK400 | Total amount: MK800'
-              ),
+                  'Date: 01-July-2019 | Damaged quantity: 2 | Product price: MK400 | Total amount: MK800'),
               isThreeLine: true,
-
             ),
           ),
         ],
@@ -169,20 +169,16 @@ class ComplementaryPage extends StatelessWidget {
             child: ListTile(
               title: Text('Ginger'),
               subtitle: Text(
-                  'Date: 01-July-2019 | Complementary quantity: 2 | Product price: MK400 | Total amount: MK800'
-              ),
+                  'Date: 01-July-2019 | Complementary quantity: 2 | Product price: MK400 | Total amount: MK800'),
               isThreeLine: true,
-
             ),
           ),
           Card(
             child: ListTile(
               title: Text('Lays'),
               subtitle: Text(
-                  'Date: 01-July-2019 | Complementary quantity: 2 | Product price: MK400 | Total amount: MK800'
-              ),
+                  'Date: 01-July-2019 | Complementary quantity: 2 | Product price: MK400 | Total amount: MK800'),
               isThreeLine: true,
-
             ),
           ),
         ],
@@ -204,20 +200,16 @@ class UserAccountsPage extends StatelessWidget {
             child: ListTile(
               title: Text('First user'),
               subtitle: Text(
-                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'
-              ),
+                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'),
               isThreeLine: true,
-
             ),
           ),
           Card(
             child: ListTile(
               title: Text('Second user'),
               subtitle: Text(
-                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'
-              ),
+                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'),
               isThreeLine: true,
-
             ),
           ),
         ],
@@ -239,20 +231,16 @@ class ProductsRunningOutOfStockPage extends StatelessWidget {
             child: ListTile(
               title: Text('Gualana'),
               subtitle: Text(
-                  'Minimum required: 12 | Product category: Standard | Current stock: 7'
-              ),
+                  'Minimum required: 12 | Product category: Standard | Current stock: 7'),
               isThreeLine: true,
-
             ),
           ),
           Card(
             child: ListTile(
               title: Text('Castel'),
               subtitle: Text(
-                  'Minimum required: 40 | Product category: Standard | Current stock: 33'
-              ),
+                  'Minimum required: 40 | Product category: Standard | Current stock: 33'),
               isThreeLine: true,
-
             ),
           ),
         ],
@@ -274,20 +262,16 @@ class ProductsOutOfStockPage extends StatelessWidget {
             child: ListTile(
               title: Text('Gualana'),
               subtitle: Text(
-                  'Minimum required: 12 | Product category: Standard | Current stock: 0'
-              ),
+                  'Minimum required: 12 | Product category: Standard | Current stock: 0'),
               isThreeLine: true,
-
             ),
           ),
           Card(
             child: ListTile(
               title: Text('Castel'),
               subtitle: Text(
-                  'Minimum required: 40 | Product category: Standard | Current stock: 0'
-              ),
+                  'Minimum required: 40 | Product category: Standard | Current stock: 0'),
               isThreeLine: true,
-
             ),
           ),
         ],
@@ -304,7 +288,17 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+
+            },
+          )
+        ],
+      ),
       body: GridView.count(
         crossAxisCount: 2,
         padding: EdgeInsets.all(16.0),
@@ -467,42 +461,42 @@ class MyHomePage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => ProductsRunningOutOfStockPage()),
+                          builder: (context) =>
+                              ProductsRunningOutOfStockPage()),
                     );
                   })),
           Card(
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                AspectRatio(
-                  aspectRatio: 15.0 / 6.0,
-                  child:
-                      Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text('Products out of stock'),
-                      SizedBox(height: 8.0),
-                      Text('8', style: TextStyle(fontWeight: FontWeight.bold)),
+                      AspectRatio(
+                        aspectRatio: 15.0 / 6.0,
+                        child: Icon(Icons.arrow_forward_ios,
+                            color: Colors.blueAccent),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('Products out of stock'),
+                            SizedBox(height: 8.0),
+                            Text('8',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
-            ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ProductsOutOfStockPage()),
-                  );
-                }
-            )
-          )
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ProductsOutOfStockPage()),
+                    );
+                  }))
         ],
       ),
       drawer: Drawer(
@@ -561,7 +555,8 @@ class MyHomePage extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UserAccountsMainPage()),
+                  MaterialPageRoute(
+                      builder: (context) => UserAccountsMainPage()),
                 );
               },
             ),
