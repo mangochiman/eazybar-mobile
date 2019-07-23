@@ -26,14 +26,91 @@ class StockCardMainPage extends StatelessWidget {
   }
 }
 
-class PricingMainPage extends StatelessWidget {
+class NewPricePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pricing'),
+        title: Text('New price'),
       ),
       body: Center(),
+    );
+  }
+}
+
+class PriceHistoryPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Price history'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class PricingMainPage extends StatefulWidget {
+  @override
+  _PricingMainPageState createState() => _PricingMainPageState();
+}
+
+class _PricingMainPageState extends State<PricingMainPage> {
+  GlobalKey key = new GlobalKey();
+
+  @override
+  _showPopupMenu() async {
+    await showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(65.0, 84.0, 0.0, 0.0),
+      items: [
+        PopupMenuItem(
+          child: InkWell(
+            child: Text("New price"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NewPricePage()),
+              );
+            },
+          ),
+        ),
+        PopupMenuItem(
+          child: InkWell(
+            child: Text("Price history"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => PriceHistoryPage()),
+              );
+            },
+          ),
+        ),
+      ],
+      elevation: 8.0,
+    );
+  }
+
+  Widget build(BuildContext context) {
+    int _act = 1;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Pricing'),
+      ),
+      body: ListView(
+        children: <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('Castel'),
+              subtitle: Text('Price: MK700'),
+              onTap: _showPopupMenu,
+              trailing: Icon(Icons.more_vert),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -95,9 +172,7 @@ class DebtorsPage extends StatelessWidget {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.search),
-            onPressed: () {
-
-            },
+            onPressed: () {},
           )
         ],
       ),
@@ -293,9 +368,7 @@ class MyHomePage extends StatelessWidget {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.refresh),
-            onPressed: () {
-
-            },
+            onPressed: () {},
           )
         ],
       ),
