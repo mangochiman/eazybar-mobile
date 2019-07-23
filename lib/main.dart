@@ -14,7 +14,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class StockCardMainPage extends StatelessWidget {
+class StockCardMainPage extends StatefulWidget {
+  @override
+  _StockCardMainPageState createState() => _StockCardMainPageState();
+}
+
+class _StockCardMainPageState extends State<StockCardMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +31,12 @@ class StockCardMainPage extends StatelessWidget {
   }
 }
 
-class NewPricePage extends StatelessWidget {
+class NewPricePage extends StatefulWidget {
+  @override
+  _NewPricePageState createState() => _NewPricePageState();
+}
+
+class _NewPricePageState extends State<NewPricePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,7 +48,12 @@ class NewPricePage extends StatelessWidget {
   }
 }
 
-class PriceHistoryPage extends StatelessWidget {
+class PriceHistoryPage extends StatefulWidget {
+  @override
+  _PriceHistoryPageState createState() => _PriceHistoryPageState();
+}
+
+class _PriceHistoryPageState extends State<PriceHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,7 +65,12 @@ class PriceHistoryPage extends StatelessWidget {
   }
 }
 
-class NewProductPage extends StatelessWidget {
+class NewProductPage extends StatefulWidget {
+  @override
+  _NewProductPageState createState() => _NewProductPageState();
+}
+
+class _NewProductPageState extends State<NewProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,7 +82,12 @@ class NewProductPage extends StatelessWidget {
   }
 }
 
-class NewUserAccountPage extends StatelessWidget {
+class NewUserAccountPage extends StatefulWidget {
+  @override
+  _NewUserAccountPageState createState() => _NewUserAccountPageState();
+}
+
+class _NewUserAccountPageState extends State<NewUserAccountPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,7 +164,12 @@ class _PricingMainPageState extends State<PricingMainPage> {
   }
 }
 
-class ProductsMainPage extends StatelessWidget {
+class ProductsMainPage extends StatefulWidget {
+  @override
+  _ProductsMainPageState createState() => _ProductsMainPageState();
+}
+
+class _ProductsMainPageState extends State<ProductsMainPage> {
   @override
 
   Widget build(BuildContext context) {
@@ -173,7 +203,12 @@ class ProductsMainPage extends StatelessWidget {
   }
 }
 
-class UserAccountsMainPage extends StatelessWidget {
+class UserAccountsMainPage extends StatefulWidget {
+  @override
+  _UserAccountsMainPageState createState() => _UserAccountsMainPageState();
+}
+
+class _UserAccountsMainPageState extends State<UserAccountsMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -215,7 +250,12 @@ class UserAccountsMainPage extends StatelessWidget {
   }
 }
 
-class ReportsMainPage extends StatelessWidget {
+class ReportsMainPage extends StatefulWidget {
+  @override
+  _ReportsMainPageState createState() => _ReportsMainPageState();
+}
+
+class _ReportsMainPageState extends State<ReportsMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,7 +267,12 @@ class ReportsMainPage extends StatelessWidget {
   }
 }
 
-class SettingsMainPage extends StatelessWidget {
+class SettingsMainPage extends StatefulWidget {
+  @override
+  _SettingsMainPageState createState() => _SettingsMainPageState();
+}
+
+class _SettingsMainPageState extends State<SettingsMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -239,7 +284,12 @@ class SettingsMainPage extends StatelessWidget {
   }
 }
 
-class DebtorsPage extends StatelessWidget {
+class DebtorsPage extends StatefulWidget {
+  @override
+  _DebtorsPageState createState() => _DebtorsPageState();
+}
+
+class _DebtorsPageState extends State<DebtorsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -276,7 +326,12 @@ class DebtorsPage extends StatelessWidget {
   }
 }
 
-class DamagesPage extends StatelessWidget {
+class DamagesPage extends StatefulWidget {
+  @override
+  _DamagesPageState createState() => _DamagesPageState();
+}
+
+class _DamagesPageState extends State<DamagesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -307,7 +362,12 @@ class DamagesPage extends StatelessWidget {
   }
 }
 
-class ComplementaryPage extends StatelessWidget {
+class ComplementaryPage extends StatefulWidget {
+  @override
+  _ComplementaryPageState createState() => _ComplementaryPageState();
+}
+
+class _ComplementaryPageState extends State<ComplementaryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -338,7 +398,12 @@ class ComplementaryPage extends StatelessWidget {
   }
 }
 
-class UserAccountsPage extends StatelessWidget {
+class UserAccountsPage extends StatefulWidget {
+  @override
+  _UserAccountsPageState createState() => _UserAccountsPageState();
+}
+
+class _UserAccountsPageState extends State<UserAccountsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -369,7 +434,12 @@ class UserAccountsPage extends StatelessWidget {
   }
 }
 
-class ProductsRunningOutOfStockPage extends StatelessWidget {
+class ProductsRunningOutOfStockPage extends StatefulWidget {
+  @override
+  _ProductsRunningOutOfStockPageState createState() => _ProductsRunningOutOfStockPageState();
+}
+
+class _ProductsRunningOutOfStockPageState extends State<ProductsRunningOutOfStockPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -400,7 +470,12 @@ class ProductsRunningOutOfStockPage extends StatelessWidget {
   }
 }
 
-class ProductsOutOfStockPage extends StatelessWidget {
+class ProductsOutOfStockPage extends StatefulWidget {
+  @override
+  _ProductsOutOfStockPageState createState() => _ProductsOutOfStockPageState();
+}
+
+class _ProductsOutOfStockPageState extends State<ProductsOutOfStockPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -430,6 +505,7 @@ class ProductsOutOfStockPage extends StatelessWidget {
     );
   }
 }
+
 
 class MyHomePage extends StatelessWidget {
   final String title;
