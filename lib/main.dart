@@ -50,6 +50,30 @@ class PriceHistoryPage extends StatelessWidget {
   }
 }
 
+class NewProductPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('New product'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class NewUserAccountPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('New user account'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
 class PricingMainPage extends StatefulWidget {
   @override
   _PricingMainPageState createState() => _PricingMainPageState();
@@ -68,7 +92,7 @@ class _PricingMainPageState extends State<PricingMainPage> {
           child: InkWell(
             child: Text("New price"),
             onTap: () {
-              Navigator.pop(context);
+              //Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => NewPricePage()),
@@ -80,7 +104,7 @@ class _PricingMainPageState extends State<PricingMainPage> {
           child: InkWell(
             child: Text("Price history"),
             onTap: () {
-              Navigator.pop(context);
+              //Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => PriceHistoryPage()),
@@ -117,12 +141,34 @@ class _PricingMainPageState extends State<PricingMainPage> {
 
 class ProductsMainPage extends StatelessWidget {
   @override
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Products'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NewProductPage()),
+              );
+            },
+          )
+        ],
       ),
-      body: Center(),
+      body: ListView(
+        children: <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('Special'),
+              subtitle: Text('Starting stock: 20 | Minimum requred: 12'),
+              trailing: Icon(Icons.more_vert),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -133,8 +179,38 @@ class UserAccountsMainPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('User accounts'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NewUserAccountPage()),
+              );
+            },
+          )
+        ],
       ),
-      body: Center(),
+      body: ListView(
+        children: const <Widget>[
+          Card(
+            child: ListTile(
+              title: Text('First user'),
+              subtitle: Text(
+                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'),
+              isThreeLine: true,
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: Text('Second user'),
+              subtitle: Text(
+                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'),
+              isThreeLine: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
