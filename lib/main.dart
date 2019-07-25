@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:convert'; //it allows us to convert our json to a list
+import 'package:http/http.dart' as http;
 
 void main() => runApp(MyApp());
 
@@ -9,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: appTitle,
-      home: MyHomePage(title: appTitle),
+      home: MyHomePage(),
     );
   }
 }
@@ -171,7 +174,6 @@ class ProductsMainPage extends StatefulWidget {
 
 class _ProductsMainPageState extends State<ProductsMainPage> {
   @override
-
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -436,10 +438,12 @@ class _UserAccountsPageState extends State<UserAccountsPage> {
 
 class ProductsRunningOutOfStockPage extends StatefulWidget {
   @override
-  _ProductsRunningOutOfStockPageState createState() => _ProductsRunningOutOfStockPageState();
+  _ProductsRunningOutOfStockPageState createState() =>
+      _ProductsRunningOutOfStockPageState();
 }
 
-class _ProductsRunningOutOfStockPageState extends State<ProductsRunningOutOfStockPage> {
+class _ProductsRunningOutOfStockPageState
+    extends State<ProductsRunningOutOfStockPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -506,21 +510,75 @@ class _ProductsOutOfStockPageState extends State<ProductsOutOfStockPage> {
   }
 }
 
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
 
-class MyHomePage extends StatelessWidget {
-  final String title;
+class _MyHomePageState extends State<MyHomePage> {
+  //final String title;
 
-  MyHomePage({Key key, this.title}) : super(key: key);
+  //MyHomePage({Key key, this.title}) : super(key: key);
+  String debtorsUrl = 'http://192.168.12.69:2000/api/v1/debtors';
+  String damagesUrl = 'http://192.168.12.69:2000/api/v1/damages';
+  String complementaryUrl = 'http://192.168.12.69:2000/api/v1/complementary';
+  String userAccountsUrl = 'http://192.168.12.69:2000/api/v1/user_accounts';
+  String productsRunningOutOfStockUrl = 'http://192.168.12.69:2000/api/v1/products_running_out_of_stock';
+  String productsOutOfStockUrl = 'http://192.168.12.69:2000/api/v1/products_out_of_stock';
+
+  Future<dynamic> getDebtors() async {
+    var response = await http.get(Uri.encodeFull(debtorsUrl),
+        headers: {"Accept": "application/json"});
+    var jsonResponse = json.decode(response.body);
+    return jsonResponse;
+  }
+
+  Future<dynamic> getDamages() async {
+    var response = await http.get(Uri.encodeFull(damagesUrl),
+        headers: {"Accept": "application/json"});
+    var jsonResponse = json.decode(response.body);
+    return jsonResponse;
+  }
+
+  Future<dynamic> getComplementary() async {
+    var response = await http.get(Uri.encodeFull(complementaryUrl),
+        headers: {"Accept": "application/json"});
+    var jsonResponse = json.decode(response.body);
+    return jsonResponse;
+  }
+
+  Future<dynamic> getUserAccounts() async {
+    var response = await http.get(Uri.encodeFull(userAccountsUrl),
+        headers: {"Accept": "application/json"});
+    var jsonResponse = json.decode(response.body);
+    return jsonResponse;
+  }
+
+  Future<dynamic> getProductsRunningOutOfStock() async {
+    var response = await http.get(Uri.encodeFull(productsRunningOutOfStockUrl),
+        headers: {"Accept": "application/json"});
+    var jsonResponse = json.decode(response.body);
+    return jsonResponse;
+  }
+
+  Future<dynamic> getProductsOutOfStock() async {
+    var response = await http.get(Uri.encodeFull(productsOutOfStockUrl),
+        headers: {"Accept": "application/json"});
+    var jsonResponse = json.decode(response.body);
+    return jsonResponse;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text("Mahara Wipha Bar"),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.refresh),
-            onPressed: () {},
+            onPressed: () {
+              getDebtors();
+            },
           )
         ],
       ),
@@ -548,8 +606,37 @@ class MyHomePage extends StatelessWidget {
                         children: <Widget>[
                           Text('Debtors'),
                           SizedBox(height: 8.0),
-                          Text('20',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          FutureBuilder(
+                            future: getDebtors(),
+                            builder:
+                                (BuildContext context, AsyncSnapshot snapshot) {
+
+
+                                  /*switch (snapshot.connectionState) {
+                                    case ConnectionState.none:
+                                      return Text('Press button to start.');
+                                    case ConnectionState.active:
+                                    case ConnectionState.waiting:
+                                      return Text('Awaiting result...');
+                                    case ConnectionState.done:
+                                      if (snapshot.hasError)
+                                        return Text('Error: ${snapshot.error}');
+                                      return Text('Result: ${snapshot.data}');
+                                  }*/
+
+                              if (snapshot.hasData) {
+                                return Text('${snapshot.data.length}',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold));
+                              } else {
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+                            },
+                          ),
+                          //Text('20',
+                              //style: TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -580,8 +667,35 @@ class MyHomePage extends StatelessWidget {
                           children: <Widget>[
                             Text('Damages'),
                             SizedBox(height: 8.0),
-                            Text('5',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            FutureBuilder(
+                              future: getDamages(),
+                              builder:
+                                  (BuildContext context, AsyncSnapshot snapshot) {
+
+
+                                /*switch (snapshot.connectionState) {
+                                    case ConnectionState.none:
+                                      return Text('Press button to start.');
+                                    case ConnectionState.active:
+                                    case ConnectionState.waiting:
+                                      return Text('Awaiting result...');
+                                    case ConnectionState.done:
+                                      if (snapshot.hasError)
+                                        return Text('Error: ${snapshot.error}');
+                                      return Text('Result: ${snapshot.data}');
+                                  }*/
+
+                                if (snapshot.hasData) {
+                                  return Text('${snapshot.data.length}',
+                                      style:
+                                      TextStyle(fontWeight: FontWeight.bold));
+                                } else {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -611,8 +725,35 @@ class MyHomePage extends StatelessWidget {
                           children: <Widget>[
                             Text('Complementary'),
                             SizedBox(height: 8.0),
-                            Text('5',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            FutureBuilder(
+                              future: getComplementary(),
+                              builder:
+                                  (BuildContext context, AsyncSnapshot snapshot) {
+
+
+                                /*switch (snapshot.connectionState) {
+                                    case ConnectionState.none:
+                                      return Text('Press button to start.');
+                                    case ConnectionState.active:
+                                    case ConnectionState.waiting:
+                                      return Text('Awaiting result...');
+                                    case ConnectionState.done:
+                                      if (snapshot.hasError)
+                                        return Text('Error: ${snapshot.error}');
+                                      return Text('Result: ${snapshot.data}');
+                                  }*/
+
+                                if (snapshot.hasData) {
+                                  return Text('${snapshot.data.length}',
+                                      style:
+                                      TextStyle(fontWeight: FontWeight.bold));
+                                } else {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -643,8 +784,35 @@ class MyHomePage extends StatelessWidget {
                           children: <Widget>[
                             Text('User accounts'),
                             SizedBox(height: 8.0),
-                            Text('2',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            FutureBuilder(
+                              future: getUserAccounts(),
+                              builder:
+                                  (BuildContext context, AsyncSnapshot snapshot) {
+
+
+                                /*switch (snapshot.connectionState) {
+                                    case ConnectionState.none:
+                                      return Text('Press button to start.');
+                                    case ConnectionState.active:
+                                    case ConnectionState.waiting:
+                                      return Text('Awaiting result...');
+                                    case ConnectionState.done:
+                                      if (snapshot.hasError)
+                                        return Text('Error: ${snapshot.error}');
+                                      return Text('Result: ${snapshot.data}');
+                                  }*/
+
+                                if (snapshot.hasData) {
+                                  return Text('${snapshot.data.length}',
+                                      style:
+                                      TextStyle(fontWeight: FontWeight.bold));
+                                } else {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -675,8 +843,35 @@ class MyHomePage extends StatelessWidget {
                           children: <Widget>[
                             Text('Products running out of stock'),
                             SizedBox(height: 8.0),
-                            Text('13',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            FutureBuilder(
+                              future: getProductsRunningOutOfStock(),
+                              builder:
+                                  (BuildContext context, AsyncSnapshot snapshot) {
+
+
+                                /*switch (snapshot.connectionState) {
+                                    case ConnectionState.none:
+                                      return Text('Press button to start.');
+                                    case ConnectionState.active:
+                                    case ConnectionState.waiting:
+                                      return Text('Awaiting result...');
+                                    case ConnectionState.done:
+                                      if (snapshot.hasError)
+                                        return Text('Error: ${snapshot.error}');
+                                      return Text('Result: ${snapshot.data}');
+                                  }*/
+
+                                if (snapshot.hasData) {
+                                  return Text('${snapshot.data.length}',
+                                      style:
+                                      TextStyle(fontWeight: FontWeight.bold));
+                                } else {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -708,8 +903,35 @@ class MyHomePage extends StatelessWidget {
                           children: <Widget>[
                             Text('Products out of stock'),
                             SizedBox(height: 8.0),
-                            Text('8',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            FutureBuilder(
+                              future: getProductsOutOfStock(),
+                              builder:
+                                  (BuildContext context, AsyncSnapshot snapshot) {
+
+
+                                /*switch (snapshot.connectionState) {
+                                    case ConnectionState.none:
+                                      return Text('Press button to start.');
+                                    case ConnectionState.active:
+                                    case ConnectionState.waiting:
+                                      return Text('Awaiting result...');
+                                    case ConnectionState.done:
+                                      if (snapshot.hasError)
+                                        return Text('Error: ${snapshot.error}');
+                                      return Text('Result: ${snapshot.data}');
+                                  }*/
+
+                                if (snapshot.hasData) {
+                                  return Text('${snapshot.data.length}',
+                                      style:
+                                      TextStyle(fontWeight: FontWeight.bold));
+                                } else {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
