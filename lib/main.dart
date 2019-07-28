@@ -3,6 +3,16 @@ import 'dart:async';
 import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 
+
+String debtorsUrl = 'http://192.168.43.102:2000/api/v1/debtors';
+String damagesUrl = 'http://192.168.43.102:2000/api/v1/damages';
+String complementaryUrl = 'http://192.168.43.102:2000/api/v1/complementary';
+String userAccountsUrl = 'http://192.168.43.102:2000/api/v1/user_accounts';
+String productsRunningOutOfStockUrl =
+    'http://192.168.43.102:2000/api/v1/products_running_out_of_stock';
+String productsOutOfStockUrl =
+    'http://192.168.43.102:2000/api/v1/products_out_of_stock';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -332,19 +342,9 @@ class DebtorsPage extends StatefulWidget {
 }
 
 class _DebtorsPageState extends State<DebtorsPage> {
-  String debtorsUrl = 'http://192.168.43.102:2000/api/v1/debtors';
-
-  /*Future<dynamic> getDebtorsList() async {
-    var response = await http.get(Uri.encodeFull(debtorsUrl),
-        headers: {"Accept": "application/json"});
-    print(json.decode(response.body.runtimeType.toString()));
-    return json.decode(response.body);
-  }*/
-
-  String url = 'https://randomuser.me/api/?results=15';
   List data;
 
-  Future<String> makeRequest() async {
+  Future<String> getDebtorsList() async {
     var response = await http.get(Uri.encodeFull(debtorsUrl),
         headers: {"Accept": "application/json"});
 
@@ -356,7 +356,7 @@ class _DebtorsPageState extends State<DebtorsPage> {
 
   @override
   void initState() {
-    this.makeRequest();
+    this.getDebtorsList();
   }
 
   @override
@@ -374,7 +374,6 @@ class _DebtorsPageState extends State<DebtorsPage> {
       body: ListView.builder(
           itemCount: data == null ? 0 : data.length,
           itemBuilder: (BuildContext context, i) {
-            print(data);
             return Card(
               child: ListTile(
                 title: Text(data[i]["name"]),
@@ -383,14 +382,6 @@ class _DebtorsPageState extends State<DebtorsPage> {
                 isThreeLine: true,
               ),
             );
-
-            /*return new ListTile(
-                title: new Text(data[i]["name"]["first"]),
-                subtitle: new Text(data[i]["phone"]),
-                leading: new CircleAvatar(
-                  backgroundImage:
-                      new NetworkImage(data[i]["picture"]["thumbnail"]),
-                ));*/
           }),
     );
   }
@@ -402,32 +393,40 @@ class DamagesPage extends StatefulWidget {
 }
 
 class _DamagesPageState extends State<DamagesPage> {
+  List data;
+
+  Future<String> getDamagesList() async {
+    var response = await http.get(Uri.encodeFull(damagesUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
   @override
+  void initState() {
+    this.getDamagesList();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Damages'),
       ),
-      body: ListView(
-        children: const <Widget>[
-          Card(
-            child: ListTile(
-              title: Text('Ginger'),
-              subtitle: Text(
-                  'Date: 01-July-2019 | Damaged quantity: 2 | Product price: MK400 | Total amount: MK800'),
-              isThreeLine: true,
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: Text('Lays'),
-              subtitle: Text(
-                  'Date: 01-July-2019 | Damaged quantity: 2 | Product price: MK400 | Total amount: MK800'),
-              isThreeLine: true,
-            ),
-          ),
-        ],
-      ),
+      body:  ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text(data[i]["product_name"]),
+                subtitle: Text(
+                    'Date: ${data[i]["stock_date"]} | Damaged quantity: ${data[i]["damaged_quantity"]} | Product price: ${data[i]["product_price"]} | Product category : ${data[i]["product_category"]} | Total amount : ${data[i]["damaged_value"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -438,32 +437,40 @@ class ComplementaryPage extends StatefulWidget {
 }
 
 class _ComplementaryPageState extends State<ComplementaryPage> {
+  List data;
+
+  Future<String> getComplementaryList() async {
+    var response = await http.get(Uri.encodeFull(complementaryUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
   @override
+  void initState() {
+    this.getComplementaryList();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Complementary'),
       ),
-      body: ListView(
-        children: const <Widget>[
-          Card(
-            child: ListTile(
-              title: Text('Ginger'),
-              subtitle: Text(
-                  'Date: 01-July-2019 | Complementary quantity: 2 | Product price: MK400 | Total amount: MK800'),
-              isThreeLine: true,
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: Text('Lays'),
-              subtitle: Text(
-                  'Date: 01-July-2019 | Complementary quantity: 2 | Product price: MK400 | Total amount: MK800'),
-              isThreeLine: true,
-            ),
-          ),
-        ],
-      ),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text(data[i]["product_name"]),
+                subtitle: Text(
+                    'Date: ${data[i]["stock_date"]} | Complementary quantity: ${data[i]["complementary_quantity"]} | Product price: ${data[i]["product_price"]} | Product category : ${data[i]["product_category"]} | Total amount : ${data[i]["complementary_value"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -587,14 +594,7 @@ class _MyHomePageState extends State<MyHomePage> {
   //final String title;
 
   //MyHomePage({Key key, this.title}) : super(key: key);
-  String debtorsUrl = 'http://192.168.43.102:2000/api/v1/debtors';
-  String damagesUrl = 'http://192.168.43.102:2000/api/v1/damages';
-  String complementaryUrl = 'http://192.168.43.102:2000/api/v1/complementary';
-  String userAccountsUrl = 'http://192.168.43.102:2000/api/v1/user_accounts';
-  String productsRunningOutOfStockUrl =
-      'http://192.168.43.102:2000/api/v1/products_running_out_of_stock';
-  String productsOutOfStockUrl =
-      'http://192.168.43.102:2000/api/v1/products_out_of_stock';
+
 
   Future<dynamic> getDebtors() async {
     var response = await http.get(Uri.encodeFull(debtorsUrl),
