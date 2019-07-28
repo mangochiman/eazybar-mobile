@@ -286,12 +286,79 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
   }
 }
 
+class Debtor {
+  var name;
+  var amountOwed;
+  var phoneNumber;
+  var date;
+  var amountPaid;
+  var balanceDue;
+
+  Debtor(
+      {this.name,
+      this.amountOwed,
+      this.phoneNumber,
+      this.date,
+      this.amountPaid,
+      this.balanceDue});
+
+  factory Debtor.fromJson(Map<String, dynamic> json) {
+    return Debtor(
+      name: json['name'],
+      amountOwed: json['amount_owed'],
+      phoneNumber: json['phone_number'],
+      date: json['date'],
+      amountPaid: json['amount_paid'],
+      balanceDue: json['balance_due'],
+    );
+  }
+
+  Map toMap() {
+    var map = Map<String, dynamic>();
+    map["name"] = name;
+    map["amount_owed"] = amountOwed;
+    map["phone_number"] = phoneNumber;
+    map["date"] = date;
+    map["amount_paid"] = amountPaid;
+    map["balance_due"] = balanceDue;
+
+    return map;
+  }
+}
+
 class DebtorsPage extends StatefulWidget {
   @override
   _DebtorsPageState createState() => _DebtorsPageState();
 }
 
 class _DebtorsPageState extends State<DebtorsPage> {
+  String debtorsUrl = 'http://192.168.43.102:2000/api/v1/debtors';
+
+  /*Future<dynamic> getDebtorsList() async {
+    var response = await http.get(Uri.encodeFull(debtorsUrl),
+        headers: {"Accept": "application/json"});
+    print(json.decode(response.body.runtimeType.toString()));
+    return json.decode(response.body);
+  }*/
+
+  String url = 'https://randomuser.me/api/?results=15';
+  List data;
+
+  Future<String> makeRequest() async {
+    var response = await http.get(Uri.encodeFull(debtorsUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
+  @override
+  void initState() {
+    this.makeRequest();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -304,26 +371,27 @@ class _DebtorsPageState extends State<DebtorsPage> {
           )
         ],
       ),
-      body: ListView(
-        children: const <Widget>[
-          Card(
-            child: ListTile(
-              title: Text('Jon Doe'),
-              subtitle: Text(
-                  'Amount owed: MK5,000 | Date: 01-July-2019 | Amount paid: MK 0.0 | Balance: MK5,000 | Phone #:01200200'),
-              isThreeLine: true,
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: Text('Doe Jon'),
-              subtitle: Text(
-                  'Amount owed: MK5,000 | Date: 01-July-2019 | Amount paid: MK 0.0 | Balance: MK5,000 | Phone #:01200200'),
-              isThreeLine: true,
-            ),
-          ),
-        ],
-      ),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            print(data);
+            return Card(
+              child: ListTile(
+                title: Text(data[i]["name"]),
+                subtitle: Text(
+                    'Amount owed: ${data[i]["amount_owed"]} | Date: 01-July-2019 | Amount paid: ${data[i]["amount_paid"]} | Balance: ${data[i]["balance_due"]} | Phone #: ${data[i]["phone_number"]}'),
+                isThreeLine: true,
+              ),
+            );
+
+            /*return new ListTile(
+                title: new Text(data[i]["name"]["first"]),
+                subtitle: new Text(data[i]["phone"]),
+                leading: new CircleAvatar(
+                  backgroundImage:
+                      new NetworkImage(data[i]["picture"]["thumbnail"]),
+                ));*/
+          }),
     );
   }
 }
@@ -519,12 +587,14 @@ class _MyHomePageState extends State<MyHomePage> {
   //final String title;
 
   //MyHomePage({Key key, this.title}) : super(key: key);
-  String debtorsUrl = 'http://192.168.12.69:2000/api/v1/debtors';
-  String damagesUrl = 'http://192.168.12.69:2000/api/v1/damages';
-  String complementaryUrl = 'http://192.168.12.69:2000/api/v1/complementary';
-  String userAccountsUrl = 'http://192.168.12.69:2000/api/v1/user_accounts';
-  String productsRunningOutOfStockUrl = 'http://192.168.12.69:2000/api/v1/products_running_out_of_stock';
-  String productsOutOfStockUrl = 'http://192.168.12.69:2000/api/v1/products_out_of_stock';
+  String debtorsUrl = 'http://192.168.43.102:2000/api/v1/debtors';
+  String damagesUrl = 'http://192.168.43.102:2000/api/v1/damages';
+  String complementaryUrl = 'http://192.168.43.102:2000/api/v1/complementary';
+  String userAccountsUrl = 'http://192.168.43.102:2000/api/v1/user_accounts';
+  String productsRunningOutOfStockUrl =
+      'http://192.168.43.102:2000/api/v1/products_running_out_of_stock';
+  String productsOutOfStockUrl =
+      'http://192.168.43.102:2000/api/v1/products_out_of_stock';
 
   Future<dynamic> getDebtors() async {
     var response = await http.get(Uri.encodeFull(debtorsUrl),
@@ -610,9 +680,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             future: getDebtors(),
                             builder:
                                 (BuildContext context, AsyncSnapshot snapshot) {
-
-
-                                  /*switch (snapshot.connectionState) {
+                              /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
                                     case ConnectionState.active:
@@ -636,7 +704,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             },
                           ),
                           //Text('20',
-                              //style: TextStyle(fontWeight: FontWeight.bold)),
+                          //style: TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -669,10 +737,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             SizedBox(height: 8.0),
                             FutureBuilder(
                               future: getDamages(),
-                              builder:
-                                  (BuildContext context, AsyncSnapshot snapshot) {
-
-
+                              builder: (BuildContext context,
+                                  AsyncSnapshot snapshot) {
                                 /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
@@ -687,8 +753,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                 if (snapshot.hasData) {
                                   return Text('${snapshot.data.length}',
-                                      style:
-                                      TextStyle(fontWeight: FontWeight.bold));
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold));
                                 } else {
                                   return Center(
                                     child: CircularProgressIndicator(),
@@ -727,10 +793,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             SizedBox(height: 8.0),
                             FutureBuilder(
                               future: getComplementary(),
-                              builder:
-                                  (BuildContext context, AsyncSnapshot snapshot) {
-
-
+                              builder: (BuildContext context,
+                                  AsyncSnapshot snapshot) {
                                 /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
@@ -745,8 +809,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                 if (snapshot.hasData) {
                                   return Text('${snapshot.data.length}',
-                                      style:
-                                      TextStyle(fontWeight: FontWeight.bold));
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold));
                                 } else {
                                   return Center(
                                     child: CircularProgressIndicator(),
@@ -786,10 +850,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             SizedBox(height: 8.0),
                             FutureBuilder(
                               future: getUserAccounts(),
-                              builder:
-                                  (BuildContext context, AsyncSnapshot snapshot) {
-
-
+                              builder: (BuildContext context,
+                                  AsyncSnapshot snapshot) {
                                 /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
@@ -804,8 +866,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                 if (snapshot.hasData) {
                                   return Text('${snapshot.data.length}',
-                                      style:
-                                      TextStyle(fontWeight: FontWeight.bold));
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold));
                                 } else {
                                   return Center(
                                     child: CircularProgressIndicator(),
@@ -845,10 +907,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             SizedBox(height: 8.0),
                             FutureBuilder(
                               future: getProductsRunningOutOfStock(),
-                              builder:
-                                  (BuildContext context, AsyncSnapshot snapshot) {
-
-
+                              builder: (BuildContext context,
+                                  AsyncSnapshot snapshot) {
                                 /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
@@ -863,8 +923,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                 if (snapshot.hasData) {
                                   return Text('${snapshot.data.length}',
-                                      style:
-                                      TextStyle(fontWeight: FontWeight.bold));
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold));
                                 } else {
                                   return Center(
                                     child: CircularProgressIndicator(),
@@ -905,10 +965,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             SizedBox(height: 8.0),
                             FutureBuilder(
                               future: getProductsOutOfStock(),
-                              builder:
-                                  (BuildContext context, AsyncSnapshot snapshot) {
-
-
+                              builder: (BuildContext context,
+                                  AsyncSnapshot snapshot) {
                                 /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
@@ -923,8 +981,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                 if (snapshot.hasData) {
                                   return Text('${snapshot.data.length}',
-                                      style:
-                                      TextStyle(fontWeight: FontWeight.bold));
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold));
                                 } else {
                                   return Center(
                                     child: CircularProgressIndicator(),
