@@ -3,11 +3,11 @@ import 'dart:async';
 import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 
-
 String debtorsUrl = 'http://192.168.43.102:2000/api/v1/debtors';
 String damagesUrl = 'http://192.168.43.102:2000/api/v1/damages';
 String complementaryUrl = 'http://192.168.43.102:2000/api/v1/complementary';
 String userAccountsUrl = 'http://192.168.43.102:2000/api/v1/user_accounts';
+String productsPricesUrl = 'http://192.168.43.102:2000/api/v1/products_prices';
 String productsRunningOutOfStockUrl =
     'http://192.168.43.102:2000/api/v1/products_running_out_of_stock';
 String productsOutOfStockUrl =
@@ -120,7 +120,33 @@ class PricingMainPage extends StatefulWidget {
 class _PricingMainPageState extends State<PricingMainPage> {
   GlobalKey key = new GlobalKey();
 
+  List data;
+
+  Future<String> getPricesList() async {
+    var response = await http.get(Uri.encodeFull(productsPricesUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
   @override
+  void initState() {
+    this.getPricesList();
+  }
+
+  final String _simpleValue1 = 'Menu item value one';
+  final String _simpleValue2 = 'Menu item value two';
+  final String _simpleValue3 = 'Menu item value three';
+  String _simpleValue;
+
+  final String _checkedValue1 = 'One';
+  final String _checkedValue2 = 'Two';
+  final String _checkedValue3 = 'Free';
+  final String _checkedValue4 = 'Four';
+
   _showPopupMenu() async {
     await showMenu(
       context: context,
@@ -155,24 +181,41 @@ class _PricingMainPageState extends State<PricingMainPage> {
     );
   }
 
+  void showMenuSelection(String value) {
+    print(value);
+  }
+
   Widget build(BuildContext context) {
-    int _act = 1;
     return Scaffold(
       appBar: AppBar(
         title: Text('Pricing'),
       ),
-      body: ListView(
-        children: <Widget>[
-          Card(
-            child: ListTile(
-              title: Text('Castel'),
-              subtitle: Text('Price: MK700'),
-              onTap: _showPopupMenu,
-              trailing: Icon(Icons.more_vert),
-            ),
-          ),
-        ],
-      ),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text(data[i]["product_name"]),
+                subtitle: Text(
+                    'Product category: ${data[i]["product_category"]} | Product Price: ${data[i]["product_category"]}'),
+                trailing: PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    onSelected: showMenuSelection,
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuItem<String>>[
+                          PopupMenuItem<String>(
+                            value: 'new_price|${data[i]["product_id"]}',
+                            child: const Text('New price'),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'price_history|${data[i]["product_id"]}',
+                            child: const Text('Price history'),
+                          ),
+                        ]),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -378,7 +421,7 @@ class _DebtorsPageState extends State<DebtorsPage> {
               child: ListTile(
                 title: Text(data[i]["name"]),
                 subtitle: Text(
-                    'Amount owed: ${data[i]["amount_owed"]} | Date: 01-July-2019 | Amount paid: ${data[i]["amount_paid"]} | Balance: ${data[i]["balance_due"]} | Phone #: ${data[i]["phone_number"]}'),
+                    'Amount owed: ${data[i]["amount_owed"]} | Date: ${data[i]["date"]} | Amount paid: ${data[i]["amount_paid"]} | Balance: ${data[i]["balance_due"]} | Phone #: ${data[i]["phone_number"]}'),
                 isThreeLine: true,
               ),
             );
@@ -415,7 +458,7 @@ class _DamagesPageState extends State<DamagesPage> {
       appBar: AppBar(
         title: Text('Damages'),
       ),
-      body:  ListView.builder(
+      body: ListView.builder(
           itemCount: data == null ? 0 : data.length,
           itemBuilder: (BuildContext context, i) {
             return Card(
@@ -481,32 +524,40 @@ class UserAccountsPage extends StatefulWidget {
 }
 
 class _UserAccountsPageState extends State<UserAccountsPage> {
+  List data;
+
+  Future<String> getUserAccountList() async {
+    var response = await http.get(Uri.encodeFull(userAccountsUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
   @override
+  void initState() {
+    this.getUserAccountList();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('User accounts'),
       ),
-      body: ListView(
-        children: const <Widget>[
-          Card(
-            child: ListTile(
-              title: Text('First user'),
-              subtitle: Text(
-                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'),
-              isThreeLine: true,
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: Text('Second user'),
-              subtitle: Text(
-                  'Username: admin | Email: test@gmail.com | Role: admin | Phone #: 01300300'),
-              isThreeLine: true,
-            ),
-          ),
-        ],
-      ),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text('${data[i]["first_name"]} ${data[i]["last_name"]}'),
+                subtitle: Text(
+                    'Username: ${data[i]["username"]} | E-mail: ${data[i]["email"]} | Role: ${data[i]["role"]} | Phone # : ${data[i]["phone_number"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -519,32 +570,40 @@ class ProductsRunningOutOfStockPage extends StatefulWidget {
 
 class _ProductsRunningOutOfStockPageState
     extends State<ProductsRunningOutOfStockPage> {
+  List data;
+
+  Future<String> getProductsRunningOutOfStockList() async {
+    var response = await http.get(Uri.encodeFull(productsRunningOutOfStockUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
   @override
+  void initState() {
+    this.getProductsRunningOutOfStockList();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Products running low'),
       ),
-      body: ListView(
-        children: const <Widget>[
-          Card(
-            child: ListTile(
-              title: Text('Gualana'),
-              subtitle: Text(
-                  'Minimum required: 12 | Product category: Standard | Current stock: 7'),
-              isThreeLine: true,
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: Text('Castel'),
-              subtitle: Text(
-                  'Minimum required: 40 | Product category: Standard | Current stock: 33'),
-              isThreeLine: true,
-            ),
-          ),
-        ],
-      ),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text('${data[i]["product_name"]}'),
+                subtitle: Text(
+                    'Minimum required: ${data[i]["minimum_required"]} | Product category: ${data[i]["product_category"]} | Current stock: ${data[i]["current_stock"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -555,32 +614,40 @@ class ProductsOutOfStockPage extends StatefulWidget {
 }
 
 class _ProductsOutOfStockPageState extends State<ProductsOutOfStockPage> {
+  List data;
+
+  Future<String> getProductsOutOfStockList() async {
+    var response = await http.get(Uri.encodeFull(productsOutOfStockUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
   @override
+  void initState() {
+    this.getProductsOutOfStockList();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Products out of stock'),
       ),
-      body: ListView(
-        children: const <Widget>[
-          Card(
-            child: ListTile(
-              title: Text('Gualana'),
-              subtitle: Text(
-                  'Minimum required: 12 | Product category: Standard | Current stock: 0'),
-              isThreeLine: true,
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: Text('Castel'),
-              subtitle: Text(
-                  'Minimum required: 40 | Product category: Standard | Current stock: 0'),
-              isThreeLine: true,
-            ),
-          ),
-        ],
-      ),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text('${data[i]["product_name"]}'),
+                subtitle: Text(
+                    'Minimum required: ${data[i]["minimum_required"]} | Product category: ${data[i]["product_category"]} | Current stock: ${data[i]["current_stock"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -594,7 +661,6 @@ class _MyHomePageState extends State<MyHomePage> {
   //final String title;
 
   //MyHomePage({Key key, this.title}) : super(key: key);
-
 
   Future<dynamic> getDebtors() async {
     var response = await http.get(Uri.encodeFull(debtorsUrl),
