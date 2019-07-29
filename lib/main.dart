@@ -3,15 +3,16 @@ import 'dart:async';
 import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 
-String debtorsUrl = 'http://192.168.43.102:2000/api/v1/debtors';
-String damagesUrl = 'http://192.168.43.102:2000/api/v1/damages';
-String complementaryUrl = 'http://192.168.43.102:2000/api/v1/complementary';
-String userAccountsUrl = 'http://192.168.43.102:2000/api/v1/user_accounts';
-String productsPricesUrl = 'http://192.168.43.102:2000/api/v1/products_prices';
+String debtorsUrl = 'http://192.168.12.69:2000/api/v1/debtors';
+String damagesUrl = 'http://192.168.12.69:2000/api/v1/damages';
+String complementaryUrl = 'http://192.168.12.69:2000/api/v1/complementary';
+String userAccountsUrl = 'http://192.168.12.69:2000/api/v1/user_accounts';
+String productsPricesUrl = 'http://192.168.12.69:2000/api/v1/products_prices';
+String priceHistoryUrl = 'http://192.168.12.69:2000/api/v1/price_history';
 String productsRunningOutOfStockUrl =
-    'http://192.168.43.102:2000/api/v1/products_running_out_of_stock';
+    'http://192.168.12.69:2000/api/v1/products_running_out_of_stock';
 String productsOutOfStockUrl =
-    'http://192.168.43.102:2000/api/v1/products_out_of_stock';
+    'http://192.168.12.69:2000/api/v1/products_out_of_stock';
 
 void main() => runApp(MyApp());
 
@@ -45,35 +46,74 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
 }
 
 class NewPricePage extends StatefulWidget {
+  final String productID;
+  final String productName;
+
+  const NewPricePage({Key key, this.productID, this.productName}): super(key: key);
+
   @override
   _NewPricePageState createState() => _NewPricePageState();
 }
 
 class _NewPricePageState extends State<NewPricePage> {
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('New price'),
+        title: Text('New price of ' + widget.productName),
       ),
-      body: Center(),
+      body: Center(child: Text('${widget.productID}'),),
     );
   }
 }
 
 class PriceHistoryPage extends StatefulWidget {
+  final String productID;
+  final String productName;
+
+  const PriceHistoryPage({Key key, this.productID, this.productName}): super(key: key);
   @override
   _PriceHistoryPageState createState() => _PriceHistoryPageState();
 }
 
 class _PriceHistoryPageState extends State<PriceHistoryPage> {
+  List data;
+
+  Future<String> getPriceHistory() async {
+    var response = await http.get(Uri.encodeFull('${priceHistoryUrl}?product_id=${widget.productID}'),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+      print(jsonResponse);
+    });
+  }
+
   @override
+  void initState() {
+    this.getPriceHistory();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Price history'),
+        title: Text('Price history of ' + widget.productName),
       ),
-      body: Center(),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text(data[i]["start_date"] + ' - ' + data[i]["end_date"]),
+                subtitle: Text(
+                    'Price: ${data[i]["price"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -182,7 +222,23 @@ class _PricingMainPageState extends State<PricingMainPage> {
   }
 
   void showMenuSelection(String value) {
-    print(value);
+    //print(value);
+    List array = value.split("|");
+    var productID = array[1];
+    var productName = array[2];
+    if (array[0].contains('new_price')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => NewPricePage(productID: productID, productName: productName)),
+      );
+    }
+    if (array[0].contains('price_history')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PriceHistoryPage(productID: productID, productName: productName)),
+      );
+    }
   }
 
   Widget build(BuildContext context) {
@@ -197,21 +253,21 @@ class _PricingMainPageState extends State<PricingMainPage> {
               child: ListTile(
                 title: Text(data[i]["product_name"]),
                 subtitle: Text(
-                    'Product category: ${data[i]["product_category"]} | Product Price: ${data[i]["product_category"]}'),
+                    'Product category: ${data[i]["product_category"]} | Product Price: ${data[i]["product_price"]}'),
                 trailing: PopupMenuButton<String>(
                     padding: EdgeInsets.zero,
                     onSelected: showMenuSelection,
                     itemBuilder: (BuildContext context) =>
-                        <PopupMenuItem<String>>[
-                          PopupMenuItem<String>(
-                            value: 'new_price|${data[i]["product_id"]}',
-                            child: const Text('New price'),
-                          ),
-                          PopupMenuItem<String>(
-                            value: 'price_history|${data[i]["product_id"]}',
-                            child: const Text('Price history'),
-                          ),
-                        ]),
+                    <PopupMenuItem<String>>[
+                      PopupMenuItem<String>(
+                        value: 'new_price|${data[i]["product_id"]}|${data[i]["product_name"]}',
+                        child: const Text('New price'),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'price_history|${data[i]["product_id"]}|${data[i]["product_name"]}',
+                        child: const Text('Price history'),
+                      ),
+                    ]),
                 isThreeLine: true,
               ),
             );
@@ -347,13 +403,12 @@ class Debtor {
   var amountPaid;
   var balanceDue;
 
-  Debtor(
-      {this.name,
-      this.amountOwed,
-      this.phoneNumber,
-      this.date,
-      this.amountPaid,
-      this.balanceDue});
+  Debtor({this.name,
+    this.amountOwed,
+    this.phoneNumber,
+    this.date,
+    this.amountPaid,
+    this.balanceDue});
 
   factory Debtor.fromJson(Map<String, dynamic> json) {
     return Debtor(
@@ -761,7 +816,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               if (snapshot.hasData) {
                                 return Text('${snapshot.data.length}',
                                     style:
-                                        TextStyle(fontWeight: FontWeight.bold));
+                                    TextStyle(fontWeight: FontWeight.bold));
                               } else {
                                 return Center(
                                   child: CircularProgressIndicator(),
