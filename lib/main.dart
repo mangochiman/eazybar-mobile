@@ -12,6 +12,10 @@ String productsPricesUrl = URL + '/api/v1/products_prices';
 String priceHistoryUrl = URL + '/api/v1/price_history';
 String productsUrl = URL + '/api/v1/products';
 String searchDebtorsUrl = URL + '/api/v1/search_debtors';
+String overdueDebtorsUrl = URL + '/api/v1/overdue_debtors';
+String searchOverdueDebtorsUrl = URL + '/api/v1/search_overdue_debtors';
+String debtorPaymentsUrl = URL + '/api/v1/debtor_payments';
+String searchDebtorPaymentsUrl = URL + '/api/v1/search_debtor_payments';
 String productsRunningOutOfStockUrl =
     URL + '/api/v1/products_running_out_of_stock';
 String productsOutOfStockUrl = URL + '/api/v1/products_out_of_stock';
@@ -392,7 +396,33 @@ class _ReportsMainPageState extends State<ReportsMainPage> {
       appBar: AppBar(
         title: Text('Reports'),
       ),
-      body: Center(),
+      body: SizedBox.expand(child: DataTable(columns: [
+        DataColumn(
+          label: Text("Date"),
+          numeric: false,
+          tooltip: "This is First Name",
+        ),
+        DataColumn(
+          label: Text("01-July-2019"),
+          numeric: false,
+          tooltip: "This is Last Name",
+        ),
+      ], rows: [
+        DataRow(cells: [DataCell(Text("Complementary")), DataCell(Text("MWK 0.00"))]),
+        DataRow(cells: [DataCell(Text("Damages")), DataCell(Text("MWK 0.00"))]),
+        DataRow(cells: [DataCell(Text("Total sales")), DataCell(Text("MWK 111,900.00"))]),
+        DataRow(cells: [DataCell(Text("Debtors")), DataCell(Text("MWK 8,600.00"))]),
+        DataRow(cells: [DataCell(Text("Expected cash")), DataCell(Text("MWK 103,300.00"))]),
+        DataRow(cells: [DataCell(Text("Collected cash")), DataCell(Text("MWK 103,300.00"))]),
+        DataRow(cells: [DataCell(Text("Shortages")), DataCell(Text("MWK 0.00"))])
+      ])),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            // Add your onPressed code here!
+          },
+          child: Icon(Icons.refresh),
+          backgroundColor: Colors.blue,
+        )
     );
   }
 }
@@ -460,13 +490,83 @@ class DebtorsPaymentPage extends StatefulWidget {
 }
 
 class _DebtorsPaymentPageState extends State<DebtorsPaymentPage> {
+  List data;
+
+  Future<String> getDebtorsPaymentList() async {
+    var response = await http.get(Uri.encodeFull(debtorPaymentsUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
+  Future<String> searchDebtorsPayment() async {
+    var response = await http.get(
+        Uri.encodeFull(searchDebtorPaymentsUrl + "?name=" + _filter.text),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
+  Icon _searchIcon = new Icon(Icons.search);
+  Widget _appBarTitle = new Text('Debtors payment');
+  final TextEditingController _filter = new TextEditingController();
+
+  void _searchPressed() {
+    setState(() {
+      if (this._searchIcon.icon == Icons.search) {
+        this._searchIcon = Icon(Icons.close);
+        this._appBarTitle = TextField(
+          controller: _filter,
+          autofocus: true,
+          decoration: new InputDecoration(
+              prefixIcon: new Icon(Icons.search),
+              hintText: 'Search debtors...'),
+        );
+      } else {
+        this._searchIcon = new Icon(Icons.search);
+        this._appBarTitle = new Text('Debtors payment');
+        _filter.clear();
+      }
+    });
+  }
+
   @override
+  void initState() {
+    this.getDebtorsPaymentList();
+    _filter.addListener(searchDebtorsPayment);
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Debtors payment'),
+        title: _appBarTitle,
+        actions: <Widget>[
+          IconButton(
+            icon: _searchIcon,
+            onPressed: () {
+              _searchPressed();
+            },
+          )
+        ],
       ),
-      body: Center(),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text(data[i]["amount_paid"]),
+                subtitle: Text(
+                    'Debtor: ${data[i]["debtor"]} | Amount owed: ${data[i]["amount_owed"]} | Date paid: ${data[i]["date_paid"]} | Date owed: ${data[i]["date_owed"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -477,13 +577,83 @@ class OverdueDebtorsPage extends StatefulWidget {
 }
 
 class _OverdueDebtorsPageState extends State<OverdueDebtorsPage> {
+  List data;
+
+  Future<String> getOverdueDebtorsList() async {
+    var response = await http.get(Uri.encodeFull(overdueDebtorsUrl),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
+  Future<String> searchOverdueDebtors() async {
+    var response = await http.get(
+        Uri.encodeFull(searchOverdueDebtorsUrl + "?name=" + _filter.text),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
+  Icon _searchIcon = new Icon(Icons.search);
+  Widget _appBarTitle = new Text('Overdue debtors');
+  final TextEditingController _filter = new TextEditingController();
+
   @override
+  void initState() {
+    this.getOverdueDebtorsList();
+    _filter.addListener(searchOverdueDebtors);
+  }
+
+  void _searchPressed() {
+    setState(() {
+      if (this._searchIcon.icon == Icons.search) {
+        this._searchIcon = Icon(Icons.close);
+        this._appBarTitle = TextField(
+          controller: _filter,
+          autofocus: true,
+          decoration: new InputDecoration(
+              prefixIcon: new Icon(Icons.search),
+              hintText: 'Search debtors...'),
+        );
+      } else {
+        this._searchIcon = new Icon(Icons.search);
+        this._appBarTitle = new Text('Overdue debtors');
+        _filter.clear();
+      }
+    });
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Overdue debtors'),
+        title: _appBarTitle,
+        actions: <Widget>[
+          IconButton(
+            icon: _searchIcon,
+            onPressed: () {
+              _searchPressed();
+            },
+          )
+        ],
       ),
-      body: Center(),
+      body: ListView.builder(
+          itemCount: data == null ? 0 : data.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text(data[i]["name"]),
+                subtitle: Text(
+                    'Amount owed: ${data[i]["amount_owed"]} | Date: ${data[i]["date"]} | Amount paid: ${data[i]["amount_paid"]} | Balance: ${data[i]["balance_due"]} | Phone #: ${data[i]["phone_number"]} | Days gone #: ${data[i]["days_gone"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
     );
   }
 }
@@ -507,7 +677,8 @@ class _DebtorsPageState extends State<DebtorsPage> {
   }
 
   Future<String> searchDebtors() async {
-    var response = await http.get(Uri.encodeFull(searchDebtorsUrl + "?name=" + _filter.text),
+    var response = await http.get(
+        Uri.encodeFull(searchDebtorsUrl + "?name=" + _filter.text),
         headers: {"Accept": "application/json"});
 
     setState(() {
@@ -519,7 +690,6 @@ class _DebtorsPageState extends State<DebtorsPage> {
   Icon _searchIcon = new Icon(Icons.search);
   Widget _appBarTitle = new Text('Debtors');
   final TextEditingController _filter = new TextEditingController();
-
 
   @override
   void initState() {
