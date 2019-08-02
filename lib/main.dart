@@ -11,6 +11,7 @@ String userAccountsUrl = URL + '/api/v1/user_accounts';
 String productsPricesUrl = URL + '/api/v1/products_prices';
 String priceHistoryUrl = URL + '/api/v1/price_history';
 String productsUrl = URL + '/api/v1/products';
+String searchDebtorsUrl = URL + '/api/v1/search_debtors';
 String productsRunningOutOfStockUrl =
     URL + '/api/v1/products_running_out_of_stock';
 String productsOutOfStockUrl = URL + '/api/v1/products_out_of_stock';
@@ -182,16 +183,6 @@ class _PricingMainPageState extends State<PricingMainPage> {
     this.getPricesList();
   }
 
-  final String _simpleValue1 = 'Menu item value one';
-  final String _simpleValue2 = 'Menu item value two';
-  final String _simpleValue3 = 'Menu item value three';
-  String _simpleValue;
-
-  final String _checkedValue1 = 'One';
-  final String _checkedValue2 = 'Two';
-  final String _checkedValue3 = 'Free';
-  final String _checkedValue4 = 'Four';
-
   _showPopupMenu() async {
     await showMenu(
       context: context,
@@ -293,9 +284,9 @@ class ProductsMainPage extends StatefulWidget {
 
 class _ProductsMainPageState extends State<ProductsMainPage> {
   List data;
+
   Future<String> getProductsList() async {
-    var response = await http.get(
-        Uri.encodeFull(productsUrl),
+    var response = await http.get(Uri.encodeFull(productsUrl),
         headers: {"Accept": "application/json"});
 
     setState(() {
@@ -331,9 +322,9 @@ class _ProductsMainPageState extends State<ProductsMainPage> {
           itemBuilder: (BuildContext context, i) {
             return Card(
               child: ListTile(
-                title:
-                Text(data[i]["product_name"]),
-                subtitle: Text('Minimum required: ${data[i]["minimum_required"]} | Current stock: ${data[i]["current_stock"]}'),
+                title: Text(data[i]["product_name"]),
+                subtitle: Text(
+                    'Minimum required: ${data[i]["minimum_required"]} | Current stock: ${data[i]["current_stock"]}'),
                 isThreeLine: true,
               ),
             );
@@ -463,6 +454,40 @@ class Debtor {
   }
 }
 
+class DebtorsPaymentPage extends StatefulWidget {
+  @override
+  _DebtorsPaymentPageState createState() => _DebtorsPaymentPageState();
+}
+
+class _DebtorsPaymentPageState extends State<DebtorsPaymentPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Debtors payment'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
+class OverdueDebtorsPage extends StatefulWidget {
+  @override
+  _OverdueDebtorsPageState createState() => _OverdueDebtorsPageState();
+}
+
+class _OverdueDebtorsPageState extends State<OverdueDebtorsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Overdue debtors'),
+      ),
+      body: Center(),
+    );
+  }
+}
+
 class DebtorsPage extends StatefulWidget {
   @override
   _DebtorsPageState createState() => _DebtorsPageState();
@@ -481,21 +506,86 @@ class _DebtorsPageState extends State<DebtorsPage> {
     });
   }
 
+  Future<String> searchDebtors() async {
+    var response = await http.get(Uri.encodeFull(searchDebtorsUrl + "?name=" + _filter.text),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
+  Icon _searchIcon = new Icon(Icons.search);
+  Widget _appBarTitle = new Text('Debtors');
+  final TextEditingController _filter = new TextEditingController();
+
+
   @override
   void initState() {
     this.getDebtorsList();
+    _filter.addListener(searchDebtors);
   }
 
-  @override
+  void showMenuSelection(String value) {
+    if (value.contains('debtor_payment')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DebtorsPaymentPage()),
+      );
+    }
+
+    if (value.contains('overdue_debtors')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => OverdueDebtorsPage()),
+      );
+    }
+  }
+
+  void _searchPressed() {
+    setState(() {
+      if (this._searchIcon.icon == Icons.search) {
+        this._searchIcon = Icon(Icons.close);
+        this._appBarTitle = TextField(
+          controller: _filter,
+          autofocus: true,
+          decoration: new InputDecoration(
+              prefixIcon: new Icon(Icons.search),
+              hintText: 'Search debtors...'),
+        );
+      } else {
+        this._searchIcon = new Icon(Icons.search);
+        this._appBarTitle = new Text('Debtors');
+        _filter.clear();
+      }
+    });
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Debtors'),
+        title: _appBarTitle,
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {},
-          )
+            icon: _searchIcon,
+            onPressed: () {
+              _searchPressed();
+            },
+          ),
+          PopupMenuButton<String>(
+              padding: EdgeInsets.zero,
+              onSelected: showMenuSelection,
+              itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
+                    PopupMenuItem<String>(
+                      value: 'debtor_payment',
+                      child: const Text('Debtor payments'),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'overdue_debtors',
+                      child: const Text('Overdue debtors'),
+                    )
+                  ])
         ],
       ),
       body: ListView.builder(
@@ -1210,8 +1300,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => UserAccountsPage()),
+                  MaterialPageRoute(builder: (context) => UserAccountsPage()),
                 );
               },
             ),
