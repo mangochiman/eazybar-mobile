@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.12.69:2000";
+const String URL = "http://192.168.43.102:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -135,12 +136,133 @@ class NewProductPage extends StatefulWidget {
 
 class _NewProductPageState extends State<NewProductPage> {
   @override
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  List<String> _colors = <String>['', 'red', 'green', 'blue', 'orange'];
+  String _color = '';
+
+  final TextEditingController _controller = new TextEditingController();
+
+  Future _chooseDate(BuildContext context, String initialDateString) async {
+    var now = new DateTime.now();
+    var initialDate = convertToDate(initialDateString) ?? now;
+    initialDate = (initialDate.year >= 1900 && initialDate.isBefore(now)
+        ? initialDate
+        : now);
+
+    var result = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: new DateTime(1900),
+        lastDate: new DateTime.now());
+
+    if (result == null) return;
+
+    setState(() {
+      _controller.text = new DateFormat.yMd().format(result);
+    });
+  }
+
+  DateTime convertToDate(String input) {
+    try {
+      var d = new DateFormat.yMd().parseStrict(input);
+      return d;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('New product'),
       ),
-      body: Center(),
+      body: SafeArea(
+          top: false,
+          bottom: false,
+          child: new Form(
+              key: _formKey,
+              autovalidate: true,
+              child: new ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  children: <Widget>[
+                    new TextFormField(
+                      decoration: const InputDecoration(
+                        icon: const Icon(Icons.person),
+                        hintText: 'Enter your first and last name',
+                        labelText: 'Name',
+                      ),
+                    ),
+                    new Row(children: <Widget>[
+                      new Expanded(
+                          child: new TextFormField(
+                        decoration: new InputDecoration(
+                          icon: const Icon(Icons.calendar_today),
+                          hintText: 'Enter your date of birth',
+                          labelText: 'Dob',
+                        ),
+                        controller: _controller,
+                        keyboardType: TextInputType.datetime,
+                      )),
+                      new IconButton(
+                        icon: new Icon(Icons.more_horiz),
+                        tooltip: 'Choose date',
+                        onPressed: (() {
+                          _chooseDate(context, _controller.text);
+                        }),
+                      )
+                    ]),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.phone),
+                          hintText: 'Enter a phone number',
+                          labelText: 'Phone',
+                        ),
+                        keyboardType: TextInputType.phone),
+                    new TextFormField(
+                      decoration: const InputDecoration(
+                        icon: const Icon(Icons.email),
+                        hintText: 'Enter a email address',
+                        labelText: 'Email',
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    new FormField(
+                      builder: (FormFieldState state) {
+                        return InputDecorator(
+                          decoration: InputDecoration(
+                            icon: const Icon(Icons.color_lens),
+                            labelText: 'Color',
+                          ),
+                          isEmpty: _color == '',
+                          child: new DropdownButtonHideUnderline(
+                            child: new DropdownButton(
+                              value: _color,
+                              isDense: true,
+                              onChanged: (String newValue) {
+                                setState(() {
+                                  //newContact.favoriteColor = newValue;
+                                  _color = newValue;
+                                  state.didChange(newValue);
+                                });
+                              },
+                              items: _colors.map((String value) {
+                                return new DropdownMenuItem(
+                                  value: value,
+                                  child: new Text(value),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    new Container(
+                        padding: const EdgeInsets.only(left: 40.0, top: 20.0),
+                        child: new RaisedButton(
+                          child: const Text('Submit'),
+                          onPressed: () {},
+                        ))
+                  ]))),
     );
   }
 }
@@ -393,37 +515,54 @@ class _ReportsMainPageState extends State<ReportsMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Reports'),
-      ),
-      body: SizedBox.expand(child: DataTable(columns: [
-        DataColumn(
-          label: Text("Date"),
-          numeric: false,
-          tooltip: "This is First Name",
+        appBar: AppBar(
+          title: Text('Reports'),
         ),
-        DataColumn(
-          label: Text("01-July-2019"),
-          numeric: false,
-          tooltip: "This is Last Name",
-        ),
-      ], rows: [
-        DataRow(cells: [DataCell(Text("Complementary")), DataCell(Text("MWK 0.00"))]),
-        DataRow(cells: [DataCell(Text("Damages")), DataCell(Text("MWK 0.00"))]),
-        DataRow(cells: [DataCell(Text("Total sales")), DataCell(Text("MWK 111,900.00"))]),
-        DataRow(cells: [DataCell(Text("Debtors")), DataCell(Text("MWK 8,600.00"))]),
-        DataRow(cells: [DataCell(Text("Expected cash")), DataCell(Text("MWK 103,300.00"))]),
-        DataRow(cells: [DataCell(Text("Collected cash")), DataCell(Text("MWK 103,300.00"))]),
-        DataRow(cells: [DataCell(Text("Shortages")), DataCell(Text("MWK 0.00"))])
-      ])),
+        body: SizedBox.expand(
+            child: DataTable(columns: [
+          DataColumn(
+            label: Text("Date"),
+            numeric: false,
+            tooltip: "This is First Name",
+          ),
+          DataColumn(
+            label: Text("01-July-2019"),
+            numeric: false,
+            tooltip: "This is Last Name",
+          ),
+        ], rows: [
+          DataRow(cells: [
+            DataCell(Text("Complementary")),
+            DataCell(Text("MWK 0.00"))
+          ]),
+          DataRow(
+              cells: [DataCell(Text("Damages")), DataCell(Text("MWK 0.00"))]),
+          DataRow(cells: [
+            DataCell(Text("Total sales")),
+            DataCell(Text("MWK 111,900.00"))
+          ]),
+          DataRow(cells: [
+            DataCell(Text("Debtors")),
+            DataCell(Text("MWK 8,600.00"))
+          ]),
+          DataRow(cells: [
+            DataCell(Text("Expected cash")),
+            DataCell(Text("MWK 103,300.00"))
+          ]),
+          DataRow(cells: [
+            DataCell(Text("Collected cash")),
+            DataCell(Text("MWK 103,300.00"))
+          ]),
+          DataRow(
+              cells: [DataCell(Text("Shortages")), DataCell(Text("MWK 0.00"))])
+        ])),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             // Add your onPressed code here!
           },
           child: Icon(Icons.refresh),
           backgroundColor: Colors.blue,
-        )
-    );
+        ));
   }
 }
 
