@@ -129,16 +129,43 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
   }
 }
 
+class Product {
+  String name;
+  String category = '';
+  String part_number = '';
+  String label = '';
+  String starting_inventory = '';
+  String minimum_required = '';
+}
+
 class NewProductPage extends StatefulWidget {
   @override
   _NewProductPageState createState() => _NewProductPageState();
 }
 
 class _NewProductPageState extends State<NewProductPage> {
+  void _submitForm() {
+    print("here");
+    final FormState form = _formKey.currentState;
+
+    if (!form.validate()) {
+      showMessage('Form is not valid!  Please review and correct.');
+    } else {
+      form.save(); //This invokes each onSaved event
+
+      print('Form save called, newContact is now up to date...');
+      print('Product name: ${newProduct.name}');
+
+      print('TODO - we will write the submission part next...');
+    }
+  }
+
   @override
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  List<String> _colors = <String>['', 'red', 'green', 'blue', 'orange'];
-  String _color = '';
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  List<String> _productCategories = <String>['', 'Standard', 'Non standard'];
+  String _productCategory = '';
+  Product newProduct = new Product();
 
   final TextEditingController _controller = new TextEditingController();
 
@@ -171,8 +198,14 @@ class _NewProductPageState extends State<NewProductPage> {
     }
   }
 
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    _scaffoldKey.currentState.showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('New product'),
       ),
@@ -186,81 +219,81 @@ class _NewProductPageState extends State<NewProductPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   children: <Widget>[
                     new TextFormField(
-                      decoration: const InputDecoration(
-                        icon: const Icon(Icons.person),
-                        hintText: 'Enter your first and last name',
-                        labelText: 'Name',
-                      ),
-                    ),
-                    new Row(children: <Widget>[
-                      new Expanded(
-                          child: new TextFormField(
-                        decoration: new InputDecoration(
-                          icon: const Icon(Icons.calendar_today),
-                          hintText: 'Enter your date of birth',
-                          labelText: 'Dob',
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          hintText: 'Product name',
+                          labelText: 'Name',
                         ),
-                        controller: _controller,
-                        keyboardType: TextInputType.datetime,
-                      )),
-                      new IconButton(
-                        icon: new Icon(Icons.more_horiz),
-                        tooltip: 'Choose date',
-                        onPressed: (() {
-                          _chooseDate(context, _controller.text);
-                        }),
-                      )
-                    ]),
+                        validator: (val) =>
+                            val.isEmpty ? 'Name is required' : null,
+                        onSaved: (val) => newProduct.name = val),
                     new TextFormField(
                         decoration: const InputDecoration(
-                          icon: const Icon(Icons.phone),
-                          hintText: 'Enter a phone number',
-                          labelText: 'Phone',
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          hintText: 'Part number',
+                          labelText: 'Part number',
                         ),
-                        keyboardType: TextInputType.phone),
+                        onSaved: (val) => newProduct.part_number = val),
                     new TextFormField(
-                      decoration: const InputDecoration(
-                        icon: const Icon(Icons.email),
-                        hintText: 'Enter a email address',
-                        labelText: 'Email',
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    new FormField(
-                      builder: (FormFieldState state) {
-                        return InputDecorator(
-                          decoration: InputDecoration(
-                            icon: const Icon(Icons.color_lens),
-                            labelText: 'Color',
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          hintText: 'Product label',
+                          labelText: 'Product label',
+                        ),
+                        onSaved: (val) => newProduct.label = val),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          hintText: 'Starting stock',
+                          labelText: 'Starting stock',
+                        ),
+                        validator: (val) =>
+                            val.isEmpty ? 'Starting stock is required' : null,
+                        onSaved: (val) => newProduct.starting_inventory = val),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          hintText: 'Minimum required',
+                          labelText: 'Minimum required',
+                        ),
+                        onSaved: (val) => newProduct.minimum_required = val),
+                    new FormField(builder: (FormFieldState state) {
+                      return InputDecorator(
+                        decoration: InputDecoration(
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          labelText: 'Select product category',
+                        ),
+                        isEmpty: _productCategory == '',
+                        child: new DropdownButtonHideUnderline(
+                          child: new DropdownButton(
+                            value: _productCategory,
+                            isDense: true,
+                            onChanged: (String newValue) {
+                              setState(() {
+                                newProduct.category = newValue;
+                                _productCategory = newValue;
+                                state.didChange(newValue);
+                              });
+                            },
+                            items: _productCategories.map((String value) {
+                              return new DropdownMenuItem(
+                                value: value,
+                                child: new Text(value),
+                              );
+                            }).toList(),
                           ),
-                          isEmpty: _color == '',
-                          child: new DropdownButtonHideUnderline(
-                            child: new DropdownButton(
-                              value: _color,
-                              isDense: true,
-                              onChanged: (String newValue) {
-                                setState(() {
-                                  //newContact.favoriteColor = newValue;
-                                  _color = newValue;
-                                  state.didChange(newValue);
-                                });
-                              },
-                              items: _colors.map((String value) {
-                                return new DropdownMenuItem(
-                                  value: value,
-                                  child: new Text(value),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    }, validator: (val) {
+                      return val != '' ? null : 'Please select category';
+                    }),
                     new Container(
                         padding: const EdgeInsets.only(left: 40.0, top: 20.0),
                         child: new RaisedButton(
-                          child: const Text('Submit'),
-                          onPressed: () {},
+                          child: const Text('Create Product'),
+                          onPressed: () {
+                            _submitForm();
+                          },
                         ))
                   ]))),
     );
