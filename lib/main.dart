@@ -132,29 +132,25 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
 
 class Product {
   String name;
-  String category = '';
+  var category = '';
   String part_number = '';
   String label = '';
-  String starting_inventory = '';
+  String starting_inventory;
   String minimum_required = '';
-  var errors;
+  var errors = [];
 }
 
 class ProductService {
   static final _headers = {'Content-Type': 'application/json'};
 
   Future<Product> createProduct(Product product) async {
-    try {
       String json = _toJson(product);
       final response =
           await http.post(createProductUrl, headers: _headers, body: json);
       var serverResponse = _fromJson(response.body);
+
       return serverResponse;
-    } catch (e) {
-      print('Server Exception!!!');
-      print(e);
-      return null;
-    }
+
   }
 
   Product _fromJson(String json) {
@@ -169,7 +165,6 @@ class ProductService {
       product.label = map['label'];
       product.starting_inventory = map['starting_inventory'];
       product.minimum_required = map['minimum_required'];
-      product.errors = [];
     }
     return product;
   }
@@ -209,7 +204,6 @@ class _NewProductPageState extends State<NewProductPage> {
           showMessage('${value.name} was successfully created', Colors.blue);
         }
       });
-      //print(value.errors));
     }
   }
 
