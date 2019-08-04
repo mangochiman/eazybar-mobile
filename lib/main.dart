@@ -20,6 +20,7 @@ String searchDebtorPaymentsUrl = URL + '/api/v1/search_debtor_payments';
 String productsRunningOutOfStockUrl =
     URL + '/api/v1/products_running_out_of_stock';
 String productsOutOfStockUrl = URL + '/api/v1/products_out_of_stock';
+String createProductUrl = URL + '/api/v1/create_product';
 
 void main() => runApp(MyApp());
 
@@ -136,6 +137,54 @@ class Product {
   String label = '';
   String starting_inventory = '';
   String minimum_required = '';
+  var errors;
+}
+
+class ProductService {
+  static final _headers = {'Content-Type': 'application/json'};
+
+  Future<Product> createProduct(Product product) async {
+    try {
+      String json = _toJson(product);
+      final response =
+          await http.post(createProductUrl, headers: _headers, body: json);
+      var serverResponse = _fromJson(response.body);
+      return serverResponse;
+    } catch (e) {
+      print('Server Exception!!!');
+      print(e);
+      return null;
+    }
+  }
+
+  Product _fromJson(String json) {
+    Map<String, dynamic> map = jsonDecode(json);
+    var product = new Product();
+    if (map['errors'] != null && map["errors"].length > 0) {
+      product.errors = map['errors'];
+    } else {
+      product.name = map['name'];
+      product.category = map['category'];
+      product.part_number = map['part_number'];
+      product.label = map['label'];
+      product.starting_inventory = map['starting_inventory'];
+      product.minimum_required = map['minimum_required'];
+      product.errors = [];
+    }
+    return product;
+  }
+
+  String _toJson(Product product) {
+    var mapData = new Map();
+    mapData["name"] = product.name;
+    mapData["category"] = product.category;
+    mapData["part_number"] = product.part_number;
+    mapData["label"] = product.label;
+    mapData["starting_inventory"] = product.starting_inventory;
+    mapData["minimum_required"] = product.minimum_required;
+    String json = jsonEncode(mapData);
+    return json;
+  }
 }
 
 class NewProductPage extends StatefulWidget {
@@ -145,7 +194,6 @@ class NewProductPage extends StatefulWidget {
 
 class _NewProductPageState extends State<NewProductPage> {
   void _submitForm() {
-    print("here");
     final FormState form = _formKey.currentState;
 
     if (!form.validate()) {
@@ -153,10 +201,15 @@ class _NewProductPageState extends State<NewProductPage> {
     } else {
       form.save(); //This invokes each onSaved event
 
-      print('Form save called, newContact is now up to date...');
-      print('Product name: ${newProduct.name}');
-
-      print('TODO - we will write the submission part next...');
+      var productService = new ProductService();
+      productService.createProduct(newProduct).then((value) {
+        if (value.errors != null && value.errors.length > 0) {
+          showMessage('Errors:\n ${value.errors.join('\n')}', Colors.red);
+        } else {
+          showMessage('${value.name} was successfully created', Colors.blue);
+        }
+      });
+      //print(value.errors));
     }
   }
 
