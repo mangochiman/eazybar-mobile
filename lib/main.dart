@@ -4,7 +4,7 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.43.102:2000";
+const String URL = "http://192.168.12.69:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -21,6 +21,7 @@ String productsRunningOutOfStockUrl =
     URL + '/api/v1/products_running_out_of_stock';
 String productsOutOfStockUrl = URL + '/api/v1/products_out_of_stock';
 String createProductUrl = URL + '/api/v1/create_product';
+String createPriceUrl = URL + '/api/v1/create_product_prices';
 
 void main() => runApp(MyApp());
 
@@ -65,15 +66,123 @@ class NewPricePage extends StatefulWidget {
 }
 
 class _NewPricePageState extends State<NewPricePage> {
+  void _submitForm() {
+    final FormState form = _formKey.currentState;
+    selectedProductID = widget.productID;
+    if (!form.validate()) {
+      showMessage('Form is not valid!  Please review and correct.');
+    } else {
+      form.save(); //This invokes each onSaved event
+
+      var priceHistoryService = new PriceHistoryService();
+      priceHistoryService.createPriceHistory(newPriceHistory).then((value) {
+        if (value.errors != null && value.errors.length > 0) {
+          showMessage('Errors:\n ${value.errors.join('\n')}', Colors.red);
+        } else {
+          showMessage('${value.price} was successfully created', Colors.blue);
+          form.reset();
+          _controller.text = '';
+        }
+      });
+    }
+  }
+
   @override
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  PriceHistory newPriceHistory = new PriceHistory();
+
+  final TextEditingController _controller = new TextEditingController();
+
+  Future _chooseDate(BuildContext context, String initialDateString) async {
+    var now = new DateTime.now();
+    var initialDate = convertToDate(initialDateString) ?? now;
+    initialDate = (initialDate.year >= 1900 && initialDate.isBefore(now)
+        ? initialDate
+        : now);
+
+    var result = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: new DateTime(1900),
+        lastDate: new DateTime.now());
+
+    if (result == null) return;
+
+    setState(() {
+      _controller.text = new DateFormat.yMd().format(result);
+    });
+  }
+
+  DateTime convertToDate(String input) {
+    try {
+      var d = new DateFormat.yMd().parseStrict(input);
+      return d;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    _scaffoldKey.currentState.showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('New price of ' + widget.productName),
       ),
-      body: Center(
-        child: Text('${widget.productID}'),
-      ),
+      body: SafeArea(
+          top: false,
+          bottom: false,
+          child: new Form(
+              key: _formKey,
+              autovalidate: true,
+              child: new ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  children: <Widget>[
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          hintText: 'Price',
+                          labelText: 'Price',
+                        ),
+                        validator: (val) =>
+                            val.isEmpty ? 'Price is required' : null,
+                        onSaved: (val) => newPriceHistory.price = val),
+                    new Row(children: <Widget>[
+                      new Expanded(
+                          child: new TextFormField(
+                        decoration: new InputDecoration(
+                          icon: const Icon(Icons.calendar_today),
+                          hintText: 'Start date',
+                          labelText: 'Start date',
+                        ),
+                        validator: (val) =>
+                            val.isEmpty ? 'Start date is required' : null,
+                        controller: _controller,
+                        onSaved: (val) => newPriceHistory.start_date = val,
+                        keyboardType: TextInputType.datetime,
+                      )),
+                      new IconButton(
+                        icon: new Icon(Icons.more_horiz),
+                        tooltip: 'Choose date',
+                        onPressed: (() {
+                          _chooseDate(context, _controller.text);
+                        }),
+                      )
+                    ]),
+                    new Container(
+                        padding: const EdgeInsets.only(left: 40.0, top: 20.0),
+                        child: new RaisedButton(
+                          child: const Text('Create Price'),
+                          onPressed: () {
+                            _submitForm();
+                          },
+                        ))
+                  ]))),
     );
   }
 }
@@ -130,6 +239,54 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
   }
 }
 
+class PriceHistory {
+  String price_history_id;
+  String price = '';
+  String start_date = '';
+  String end_date;
+  var errors = [];
+}
+
+var selectedProductID;
+
+class PriceHistoryService {
+  static final _headers = {'Content-Type': 'application/json'};
+
+  Future<PriceHistory> createPriceHistory(PriceHistory priceHistory) async {
+    String json = _toJson(priceHistory);
+    final response = await http.post(
+        createPriceUrl + '?product_id=' + selectedProductID,
+        headers: _headers,
+        body: json);
+    var serverResponse = _fromJson(response.body);
+
+    return serverResponse;
+  }
+
+  PriceHistory _fromJson(String json) {
+    Map<String, dynamic> map = jsonDecode(json);
+    var priceHistory = new PriceHistory();
+    if (map['errors'] != null && map["errors"].length > 0) {
+      priceHistory.errors = map['errors'];
+    } else {
+      priceHistory.price = map['price'];
+      priceHistory.start_date = map['start_date'];
+      priceHistory.end_date = map['end_date'];
+    }
+    return priceHistory;
+  }
+
+  String _toJson(PriceHistory priceHistory) {
+    var mapData = new Map();
+    mapData["price"] = priceHistory.price;
+    mapData["start_date"] = priceHistory.start_date;
+    mapData["end_date"] = priceHistory.end_date;
+
+    String json = jsonEncode(mapData);
+    return json;
+  }
+}
+
 class Product {
   String name;
   var category = '';
@@ -144,13 +301,12 @@ class ProductService {
   static final _headers = {'Content-Type': 'application/json'};
 
   Future<Product> createProduct(Product product) async {
-      String json = _toJson(product);
-      final response =
-          await http.post(createProductUrl, headers: _headers, body: json);
-      var serverResponse = _fromJson(response.body);
+    String json = _toJson(product);
+    final response =
+        await http.post(createProductUrl, headers: _headers, body: json);
+    var serverResponse = _fromJson(response.body);
 
-      return serverResponse;
-
+    return serverResponse;
   }
 
   Product _fromJson(String json) {
@@ -202,6 +358,7 @@ class _NewProductPageState extends State<NewProductPage> {
           showMessage('Errors:\n ${value.errors.join('\n')}', Colors.red);
         } else {
           showMessage('${value.name} was successfully created', Colors.blue);
+          form.reset();
         }
       });
     }
