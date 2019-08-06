@@ -24,6 +24,7 @@ String createProductUrl = URL + '/api/v1/create_product';
 String createPriceUrl = URL + '/api/v1/create_product_prices';
 String reportsUrl = URL + '/api/v1/reports';
 String debtPaymentPropertyURL = URL + '/api/v1/debt_payment_period';
+String updateSettingsURL = URL + '/api/v1/update_settings';
 
 void main() => runApp(MyApp());
 
@@ -46,12 +47,93 @@ class StockCardMainPage extends StatefulWidget {
 
 class _StockCardMainPageState extends State<StockCardMainPage> {
   @override
+  List widgets = [
+    {"username": "Ernest"}
+  ];
+
+  ListView getListView() => new ListView.builder(
+      itemCount: widgets.length,
+      itemBuilder: (BuildContext context, int position) {
+        return getRow(position);
+      });
+
+  Widget getRow(int i) {
+    return new Padding(
+        padding: new EdgeInsets.all(5.0),
+        child: new Card(
+          child: new Column(
+            children: <Widget>[
+              ListTile(title: Text("Castel", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),)),
+              Column(
+
+                children: <Widget>[
+                  Text('Opening stock: 30', style: TextStyle(),),
+                  Text('Added stock: 30'),
+                  Text('Current stock: ?'),
+                  Text('Closing stock: ?'),
+                  Text('Damaged stock: ?'),
+                  Text('Complementary stock: ?'),
+                  Text('Difference: ?'),
+                  Text('Price: 30'),
+                  Text('Total sales: 30')
+                ],
+              ),
+              ButtonTheme.bar(
+                child: new ButtonBar(
+                  children: <Widget>[
+                    new FlatButton(
+                      child: const Text('Add'),
+                      onPressed: () {
+                        /* ... */
+                      },
+                    ),
+                    new FlatButton(
+                      child: const Text('Close'),
+                      onPressed: () {
+                        /* ... */
+                      },
+                    ),
+                    new FlatButton(
+                      child: const Text('Damages'),
+                      onPressed: () {
+                        /* ... */
+                      },
+                    ),
+                    new FlatButton(
+                      child: const Text('Complementary'),
+                      onPressed: () {
+                        /* ... */
+                      },
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
+        ));
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Stock card'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: () {
+
+            },
+          )
+        ],
       ),
-      body: Center(),
+      body: Container(
+        padding: EdgeInsets.only(top: 20.0),
+        color: Colors.blueGrey[500],
+        child: new Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[new Expanded(child: getListView())],
+        ),
+      ),
     );
   }
 }
@@ -238,6 +320,44 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
             );
           }),
     );
+  }
+}
+
+class Setting {
+  String value;
+  var errors = [];
+}
+
+class SettingService {
+  static final _headers = {'Content-Type': 'application/json'};
+
+  Future<Setting> createSetting(Setting setting) async {
+    String json = _toJson(setting);
+    final response = await http.post(
+        updateSettingsURL + '?property=debt.payment.period',
+        headers: _headers,
+        body: json);
+    var serverResponse = _fromJson(response.body);
+
+    return serverResponse;
+  }
+
+  Setting _fromJson(String json) {
+    Map<String, dynamic> map = jsonDecode(json);
+    var setting = new Setting();
+    if (map['errors'] != null && map["errors"].length > 0) {
+      setting.errors = map['errors'];
+    } else {
+      setting.value = map['value'];
+    }
+    return setting;
+  }
+
+  String _toJson(Setting setting) {
+    var mapData = new Map();
+    mapData["value"] = setting.value;
+    String json = jsonEncode(mapData);
+    return json;
   }
 }
 
@@ -900,6 +1020,8 @@ class SettingsMainPage extends StatefulWidget {
 
 class _SettingsMainPageState extends State<SettingsMainPage> {
   Map data = {};
+  TextEditingController _textFieldController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   Future<String> getDebtPaymentPeriod() async {
     var response = await http.get(Uri.encodeFull(debtPaymentPropertyURL),
@@ -911,7 +1033,64 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
     });
   }
 
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    _scaffoldKey.currentState.showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
+  void _updateSettings() {
+    var setting = Setting();
+    setting.value = _textFieldController.text;
+    if (_textFieldController.text.length == 0) {
+      Navigator.of(context).pop();
+      showMessage('Input value to continue', Colors.red);
+      return;
+    }
+
+    var settingsService = new SettingService();
+
+    settingsService.createSetting(setting).then((value) {
+      if (value.errors != null && value.errors.length > 0) {
+      } else {
+        setState(() {
+          data["days"] = value.value;
+          _textFieldController.text = "";
+          Navigator.of(context).pop();
+          showMessage('Settings updated', Colors.blue);
+        });
+      }
+    });
+  }
+
   @override
+  _displayDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Debt payment period'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Days"),
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Update'),
+                onPressed: () {
+                  _updateSettings();
+                },
+              )
+            ],
+          );
+        });
+  }
+
   void initState() {
     data["days"] = "?";
     this.getDebtPaymentPeriod();
@@ -919,31 +1098,32 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
 
   Widget build(BuildContext context) {
     return Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
           title: Text('Settings'),
         ),
         body: SizedBox.expand(
             child: DataTable(columns: [
-              DataColumn(
-                label: Text("Property"),
-                numeric: false,
-                tooltip: "Property",
-              ),
-              DataColumn(
-                label: Text("value"),
-                numeric: false,
-                tooltip: "Value",
-              ),
-            ], rows: [
-              DataRow(cells: [
-                DataCell(Text("Debt payment period")),
-                DataCell(Text(data["days"] + " days"))
-              ]),
-            ])),
+          DataColumn(
+            label: Text("Property"),
+            numeric: false,
+            tooltip: "Property",
+          ),
+          DataColumn(
+            label: Text("value"),
+            numeric: false,
+            tooltip: "Value",
+          ),
+        ], rows: [
+          DataRow(cells: [
+            DataCell(Text("Debt payment period")),
+            DataCell(Text(data["days"] + " days"))
+          ]),
+        ])),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             // Add your onPressed code here!
-
+            _displayDialog(context);
           },
           child: Icon(Icons.edit),
           backgroundColor: Colors.blue,
