@@ -4,7 +4,7 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.12.69:2000";
+const String URL = "http://192.168.43.102:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -22,6 +22,8 @@ String productsRunningOutOfStockUrl =
 String productsOutOfStockUrl = URL + '/api/v1/products_out_of_stock';
 String createProductUrl = URL + '/api/v1/create_product';
 String createPriceUrl = URL + '/api/v1/create_product_prices';
+String reportsUrl = URL + '/api/v1/reports';
+String debtPaymentPropertyURL = URL + '/api/v1/debt_payment_period';
 
 void main() => runApp(MyApp());
 
@@ -749,7 +751,90 @@ class ReportsMainPage extends StatefulWidget {
 }
 
 class _ReportsMainPageState extends State<ReportsMainPage> {
+  final TextEditingController _controller = new TextEditingController();
+
+  //var date = "2019-07-09"; //9 july 2019
+  String date =
+      DateTime.now().subtract(new Duration(days: 1)).toIso8601String();
+  String datePickerFormat;
+
+  Map data = {};
+
+  Future<String> getReports() async {
+    try {
+      date = DateFormat("yyyy-MM-dd").format(DateTime.parse(date));
+      print(date);
+    } catch (e) {
+      print(e);
+    }
+
+    var response = await http.get(Uri.encodeFull(reportsUrl + "?date=" + date),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
+  Future _chooseDate(BuildContext context, String initialDateString) async {
+    var now = new DateTime.now();
+    var initialDate = convertToDate(initialDateString) ?? now;
+    initialDate = (initialDate.year >= 1900 && initialDate.isBefore(now)
+        ? initialDate
+        : now);
+
+    var result = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: new DateTime(1900),
+        lastDate: new DateTime.now());
+
+    if (result == null) return;
+
+    setState(() {
+      date = new DateFormat("yyyy-MM-dd").format(result);
+      try {
+        datePickerFormat =
+            DateFormat("MM/dd/yyyy").format(DateTime.parse(date));
+      } catch (e) {
+        print(e);
+      }
+      resetVariables();
+      getReports();
+    });
+  }
+
+  DateTime convertToDate(String input) {
+    try {
+      var d = new DateFormat.yMd().parseStrict(input);
+      return d;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void resetVariables() {
+    data["complementary_total"] = "Please wait";
+    data["damages_total"] = "Please wait";
+    data["total_sales"] = "Please wait";
+    data["debtors"] = "Please wait";
+    data["expected_cash"] = "Please wait";
+    data["collected_cash"] = "Please wait";
+    data["shortages"] = "Please wait";
+  }
+
   @override
+  void initState() {
+    resetVariables();
+    try {
+      datePickerFormat = DateFormat("MM/dd/yyyy").format(DateTime.parse(date));
+    } catch (e) {
+      print(e);
+    }
+    this.getReports();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
@@ -760,44 +845,49 @@ class _ReportsMainPageState extends State<ReportsMainPage> {
           DataColumn(
             label: Text("Date"),
             numeric: false,
-            tooltip: "This is First Name",
+            tooltip: "Date",
           ),
           DataColumn(
-            label: Text("01-July-2019"),
+            label: Text(date),
             numeric: false,
-            tooltip: "This is Last Name",
+            tooltip: "Date",
           ),
         ], rows: [
           DataRow(cells: [
             DataCell(Text("Complementary")),
-            DataCell(Text("MWK 0.00"))
+            DataCell(Text(data["complementary_total"]))
           ]),
-          DataRow(
-              cells: [DataCell(Text("Damages")), DataCell(Text("MWK 0.00"))]),
+          DataRow(cells: [
+            DataCell(Text("Damages")),
+            DataCell(Text(data["damages_total"]))
+          ]),
           DataRow(cells: [
             DataCell(Text("Total sales")),
-            DataCell(Text("MWK 111,900.00"))
+            DataCell(Text(data["total_sales"]))
           ]),
           DataRow(cells: [
             DataCell(Text("Debtors")),
-            DataCell(Text("MWK 8,600.00"))
+            DataCell(Text(data["debtors"]))
           ]),
           DataRow(cells: [
             DataCell(Text("Expected cash")),
-            DataCell(Text("MWK 103,300.00"))
+            DataCell(Text(data["expected_cash"]))
           ]),
           DataRow(cells: [
             DataCell(Text("Collected cash")),
-            DataCell(Text("MWK 103,300.00"))
+            DataCell(Text(data["collected_cash"]))
           ]),
-          DataRow(
-              cells: [DataCell(Text("Shortages")), DataCell(Text("MWK 0.00"))])
+          DataRow(cells: [
+            DataCell(Text("Shortages")),
+            DataCell(Text(data["shortages"]))
+          ])
         ])),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             // Add your onPressed code here!
+            _chooseDate(context, datePickerFormat);
           },
-          child: Icon(Icons.refresh),
+          child: Icon(Icons.calendar_today),
           backgroundColor: Colors.blue,
         ));
   }
@@ -809,14 +899,55 @@ class SettingsMainPage extends StatefulWidget {
 }
 
 class _SettingsMainPageState extends State<SettingsMainPage> {
+  Map data = {};
+
+  Future<String> getDebtPaymentPeriod() async {
+    var response = await http.get(Uri.encodeFull(debtPaymentPropertyURL),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
   @override
+  void initState() {
+    data["days"] = "?";
+    this.getDebtPaymentPeriod();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings'),
-      ),
-      body: Center(),
-    );
+        appBar: AppBar(
+          title: Text('Settings'),
+        ),
+        body: SizedBox.expand(
+            child: DataTable(columns: [
+              DataColumn(
+                label: Text("Property"),
+                numeric: false,
+                tooltip: "Property",
+              ),
+              DataColumn(
+                label: Text("value"),
+                numeric: false,
+                tooltip: "Value",
+              ),
+            ], rows: [
+              DataRow(cells: [
+                DataCell(Text("Debt payment period")),
+                DataCell(Text(data["days"] + " days"))
+              ]),
+            ])),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            // Add your onPressed code here!
+
+          },
+          child: Icon(Icons.edit),
+          backgroundColor: Colors.blue,
+        ));
   }
 }
 
