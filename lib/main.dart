@@ -4,7 +4,7 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.43.102:2000";
+const String URL = "http://192.168.12.69:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -25,6 +25,7 @@ String createPriceUrl = URL + '/api/v1/create_product_prices';
 String reportsUrl = URL + '/api/v1/reports';
 String debtPaymentPropertyURL = URL + '/api/v1/debt_payment_period';
 String updateSettingsURL = URL + '/api/v1/update_settings';
+String standardProductsDataURL = URL + '/api/v1/standard_products_data';
 
 void main() => runApp(MyApp());
 
@@ -47,36 +48,297 @@ class StockCardMainPage extends StatefulWidget {
 
 class _StockCardMainPageState extends State<StockCardMainPage> {
   @override
-  List widgets = [
-    {"username": "Ernest"}
-  ];
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: DefaultTabController(
+        length: 4,
+        child: Scaffold(
+          appBar: AppBar(
+            bottom: TabBar(tabs: [
+              Tab(text: 'Standard'),
+              Tab(text: 'Non standard'),
+              Tab(text: 'Debtors'),
+              Tab(text: 'Summary')
+            ], isScrollable: true),
+            title: Text('Stock card'),
+          ),
+          body: TabBarView(
+            children: [
+              StandardItemsPage(),
+              Text('Non standard items'),
+              Text('Debtors'),
+              Text('Summary')
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class StandardItemsPage extends StatefulWidget {
+  @override
+  _StandardItemsPageState createState() => _StandardItemsPageState();
+}
+
+class _StandardItemsPageState extends State<StandardItemsPage> {
+  List standardProducts = [];
+  TextEditingController _textFieldController = TextEditingController();
+  List selectedPositions = [];
+  String selectedButton = "";
+
+  Future<String> getStandardItems() async {
+    var response = await http.get(
+        Uri.encodeFull(standardProductsDataURL + "?date=10-June-2019"),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      standardProducts = jsonResponse;
+      print(jsonResponse);
+    });
+  }
+
+  @override
+  void initState() {
+    this.getStandardItems();
+  }
 
   ListView getListView() => new ListView.builder(
-      itemCount: widgets.length,
+      itemCount: standardProducts.length,
       itemBuilder: (BuildContext context, int position) {
         return getRow(position);
       });
 
+  void updateAddedStock(BuildContext context, int i) {
+    Navigator.of(context).pop();
+    setState(() {
+      standardProducts[i]["add"] = _textFieldController.text;
+    });
+    _textFieldController.text = "";
+  }
+
+  _showAddStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Add stock'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Add stock"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Update stock'),
+                onPressed: () {
+                  setState(() {
+                    selectedPositions.add(position);
+                    selectedButton = "add";
+                  });
+                  updateAddedStock(context, position);
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  _showCloseStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Close stock'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Closing amount"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Close stock'),
+                onPressed: () {
+                  setState(() {
+                    selectedPositions.add(position);
+                    selectedButton = "close";
+                  });
+                  //_updateSettings();
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  _showDamagedStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Update damages'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Damaged stock"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Update'),
+                onPressed: () {
+                  setState(() {
+                    selectedPositions.add(position);
+                    selectedButton = "damage";
+                  });
+                  //_updateSettings();
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  _showComplementaryStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Update complementary'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Complementary stock"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Update'),
+                onPressed: () {
+                  setState(() {
+                    selectedPositions.add(position);
+                    selectedButton = "complementary";
+                  });
+                  //_updateSettings();
+                },
+              )
+            ],
+          );
+        });
+  }
+
   Widget getRow(int i) {
     return new Padding(
-        padding: new EdgeInsets.all(5.0),
+        padding: new EdgeInsets.all(1.0),
         child: new Card(
           child: new Column(
             children: <Widget>[
-              ListTile(title: Text("Castel", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),)),
-              Column(
-
-                children: <Widget>[
-                  Text('Opening stock: 30', style: TextStyle(),),
-                  Text('Added stock: 30'),
-                  Text('Current stock: ?'),
-                  Text('Closing stock: ?'),
-                  Text('Damaged stock: ?'),
-                  Text('Complementary stock: ?'),
-                  Text('Difference: ?'),
-                  Text('Price: 30'),
-                  Text('Total sales: 30')
-                ],
+              ListTile(
+                  title: Text(
+                standardProducts[i]["product_name"],
+                style:
+                    TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+              )),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                child: DataTable(
+                  dataRowHeight: 16,
+                  columns: [
+                    DataColumn(
+                      label: Text("Key"),
+                      numeric: false,
+                      tooltip: "",
+                    ),
+                    DataColumn(
+                      label: Text('Value'),
+                      numeric: false,
+                      tooltip: "",
+                    ),
+                  ],
+                  rows: [
+                    DataRow(cells: [
+                      DataCell(Text("Opening stock")),
+                      DataCell(Text(standardProducts[i]["opening"]))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Added stock")),
+                      DataCell(Text(standardProducts[i]["add"],
+                          style:
+                              (selectedPositions.contains(i) && selectedButton == "add")
+                                  ? TextStyle(color: Colors.green)
+                                  : TextStyle(color: Colors.black)))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Current stock")),
+                      DataCell(Text(standardProducts[i]["current_stock"]))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Closing stock")),
+                      DataCell(Text(
+                        standardProducts[i]["closing_stock"],
+                        style:
+                            (selectedPositions.contains(i) && selectedButton == "close")
+                                ? TextStyle(color: Colors.green)
+                                : TextStyle(color: Colors.black),
+                      ))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Damaged stock")),
+                      DataCell(Text(
+                        standardProducts[i]["damaged_stock"],
+                        style: (selectedPositions.contains(i) &&
+                                selectedButton == "damage")
+                            ? TextStyle(color: Colors.green)
+                            : TextStyle(color: Colors.black),
+                      ))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Complementary stock")),
+                      DataCell(Text(
+                        standardProducts[i]["complementary_stock"],
+                        style: (selectedPositions.contains(i) &&
+                                selectedButton == "complementary")
+                            ? TextStyle(color: Colors.green)
+                            : TextStyle(color: Colors.black),
+                      ))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Difference")),
+                      DataCell(Text(standardProducts[i]["difference"]))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Price")),
+                      DataCell(Text(standardProducts[i]["product_price"]))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Total sales")),
+                      DataCell(Text("??"))
+                    ])
+                  ],
+                ),
               ),
               ButtonTheme.bar(
                 child: new ButtonBar(
@@ -84,25 +346,26 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
                     new FlatButton(
                       child: const Text('Add'),
                       onPressed: () {
-                        /* ... */
+                        print(standardProducts[i]);
+                        _showAddStockDialog(context, i);
                       },
                     ),
                     new FlatButton(
                       child: const Text('Close'),
                       onPressed: () {
-                        /* ... */
+                        _showCloseStockDialog(context, i);
                       },
                     ),
                     new FlatButton(
                       child: const Text('Damages'),
                       onPressed: () {
-                        /* ... */
+                        _showDamagedStockDialog(context, i);
                       },
                     ),
                     new FlatButton(
                       child: const Text('Complementary'),
                       onPressed: () {
-                        /* ... */
+                        _showComplementaryStockDialog(context, i);
                       },
                     )
                   ],
@@ -114,25 +377,12 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
   }
 
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Stock card'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.calendar_today),
-            onPressed: () {
-
-            },
-          )
-        ],
-      ),
-      body: Container(
-        padding: EdgeInsets.only(top: 20.0),
-        color: Colors.blueGrey[500],
-        child: new Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[new Expanded(child: getListView())],
-        ),
+    return Container(
+      padding: EdgeInsets.only(top: 10.0),
+      color: Colors.blueGrey[500],
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[new Expanded(child: getListView())],
       ),
     );
   }
