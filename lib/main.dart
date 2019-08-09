@@ -85,7 +85,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
   List standardProducts = [];
   TextEditingController _textFieldController = TextEditingController();
   List selectedPositions = [];
-  String selectedButton = "";
+  List selectedButtons = [];
 
   Future<String> getStandardItems() async {
     var response = await http.get(
@@ -118,6 +118,30 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
     _textFieldController.text = "";
   }
 
+  void updateClosedStock(BuildContext context, int i) {
+    Navigator.of(context).pop();
+    setState(() {
+      standardProducts[i]["closing_stock"] = _textFieldController.text;
+    });
+    _textFieldController.text = "";
+  }
+
+  void updateDamagedStock(BuildContext context, int i) {
+    Navigator.of(context).pop();
+    setState(() {
+      standardProducts[i]["damaged_stock"] = _textFieldController.text;
+    });
+    _textFieldController.text = "";
+  }
+
+  void updateComplementaryStock(BuildContext context, int i) {
+    Navigator.of(context).pop();
+    setState(() {
+      standardProducts[i]["complementary_stock"] = _textFieldController.text;
+    });
+    _textFieldController.text = "";
+  }
+
   _showAddStockDialog(BuildContext context, int position) async {
     return showDialog(
         context: context,
@@ -141,7 +165,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                 onPressed: () {
                   setState(() {
                     selectedPositions.add(position);
-                    selectedButton = "add";
+                    selectedButtons.add("add" + "-" + position.toString());
                   });
                   updateAddedStock(context, position);
                 },
@@ -174,8 +198,9 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                 onPressed: () {
                   setState(() {
                     selectedPositions.add(position);
-                    selectedButton = "close";
+                    selectedButtons.add("close" + "-" + position.toString());
                   });
+                  updateClosedStock(context, position);
                   //_updateSettings();
                 },
               )
@@ -207,8 +232,9 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                 onPressed: () {
                   setState(() {
                     selectedPositions.add(position);
-                    selectedButton = "damage";
+                    selectedButtons.add("damage" + "-" + position.toString());
                   });
+                  updateDamagedStock(context, position);
                   //_updateSettings();
                 },
               )
@@ -240,8 +266,9 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                 onPressed: () {
                   setState(() {
                     selectedPositions.add(position);
-                    selectedButton = "complementary";
+                    selectedButtons.add("complementary" + "-" + position.toString());
                   });
+                  updateComplementaryStock(context, position);
                   //_updateSettings();
                 },
               )
@@ -286,10 +313,10 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                     DataRow(cells: [
                       DataCell(Text("Added stock")),
                       DataCell(Text(standardProducts[i]["add"],
-                          style:
-                              (selectedPositions.contains(i) && selectedButton == "add")
-                                  ? TextStyle(color: Colors.green)
-                                  : TextStyle(color: Colors.black)))
+                          style: (selectedPositions.contains(i) &&
+                                  selectedButtons.contains("add" + "-" + i.toString()))
+                              ? TextStyle(color: Colors.green)
+                              : TextStyle(color: Colors.black)))
                     ]),
                     DataRow(cells: [
                       DataCell(Text("Current stock")),
@@ -299,10 +326,10 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                       DataCell(Text("Closing stock")),
                       DataCell(Text(
                         standardProducts[i]["closing_stock"],
-                        style:
-                            (selectedPositions.contains(i) && selectedButton == "close")
-                                ? TextStyle(color: Colors.green)
-                                : TextStyle(color: Colors.black),
+                        style: (selectedPositions.contains(i) &&
+                                selectedButtons.contains("close" + "-" + i.toString()))
+                            ? TextStyle(color: Colors.green)
+                            : TextStyle(color: Colors.black),
                       ))
                     ]),
                     DataRow(cells: [
@@ -310,7 +337,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                       DataCell(Text(
                         standardProducts[i]["damaged_stock"],
                         style: (selectedPositions.contains(i) &&
-                                selectedButton == "damage")
+                                selectedButtons.contains("damage" + "-" + i.toString()))
                             ? TextStyle(color: Colors.green)
                             : TextStyle(color: Colors.black),
                       ))
@@ -320,7 +347,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                       DataCell(Text(
                         standardProducts[i]["complementary_stock"],
                         style: (selectedPositions.contains(i) &&
-                                selectedButton == "complementary")
+                                selectedButtons.contains("complementary" + "-" + i.toString()))
                             ? TextStyle(color: Colors.green)
                             : TextStyle(color: Colors.black),
                       ))
