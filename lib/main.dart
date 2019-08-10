@@ -4,7 +4,7 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.12.69:2000";
+const String URL = "http://192.168.43.102:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -26,6 +26,8 @@ String reportsUrl = URL + '/api/v1/reports';
 String debtPaymentPropertyURL = URL + '/api/v1/debt_payment_period';
 String updateSettingsURL = URL + '/api/v1/update_settings';
 String standardProductsDataURL = URL + '/api/v1/standard_products_data';
+
+String addStockURL = URL + '/api/v1/add_stock';
 
 void main() => runApp(MyApp());
 
@@ -86,16 +88,16 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
   List selectedPositions = [];
   List selectedButtons = [];
+  String stockDate = "10-June-2019";
 
   Future<String> getStandardItems() async {
     var response = await http.get(
-        Uri.encodeFull(standardProductsDataURL + "?date=10-June-2019"),
+        Uri.encodeFull(standardProductsDataURL + "?date=" + stockDate),
         headers: {"Accept": "application/json"});
 
     setState(() {
       var jsonResponse = json.decode(response.body);
       standardProducts = jsonResponse;
-      print(jsonResponse);
     });
   }
 
@@ -110,12 +112,32 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
         return getRow(position);
       });
 
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    Scaffold.of(context).showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
   void updateAddedStock(BuildContext context, int i) {
-    Navigator.of(context).pop();
-    setState(() {
-      standardProducts[i]["add"] = _textFieldController.text;
+    var productAdditionService = ProductAdditionService();
+    ProductAddition newProductAddition = new ProductAddition();
+    newProductAddition.quantity = _textFieldController.text;
+    newProductAddition.productID = standardProducts[i]["product_id"].toString();
+    newProductAddition.stockDate = stockDate;
+
+    productAdditionService
+        .createProductAddition(newProductAddition)
+        .then((value) {
+      if (value.errors != null && value.errors.length > 0) {
+        showMessage('Errors:\n ${value.errors.join('\n')}', Colors.red);
+      } else {
+        Navigator.of(context).pop();
+        setState(() {
+          standardProducts[i]["add"] = value.quantity;
+        });
+        _textFieldController.text = "";
+        showMessage('Success', Colors.blue);
+      }
     });
-    _textFieldController.text = "";
   }
 
   void updateClosedStock(BuildContext context, int i) {
@@ -266,7 +288,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                 onPressed: () {
                   setState(() {
                     selectedPositions.add(position);
-                    selectedButtons.add("complementary" + "-" + position.toString());
+                    selectedButtons
+                        .add("complementary" + "-" + position.toString());
                   });
                   updateComplementaryStock(context, position);
                   //_updateSettings();
@@ -314,7 +337,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                       DataCell(Text("Added stock")),
                       DataCell(Text(standardProducts[i]["add"],
                           style: (selectedPositions.contains(i) &&
-                                  selectedButtons.contains("add" + "-" + i.toString()))
+                                  selectedButtons
+                                      .contains("add" + "-" + i.toString()))
                               ? TextStyle(color: Colors.green)
                               : TextStyle(color: Colors.black)))
                     ]),
@@ -327,7 +351,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                       DataCell(Text(
                         standardProducts[i]["closing_stock"],
                         style: (selectedPositions.contains(i) &&
-                                selectedButtons.contains("close" + "-" + i.toString()))
+                                selectedButtons
+                                    .contains("close" + "-" + i.toString()))
                             ? TextStyle(color: Colors.green)
                             : TextStyle(color: Colors.black),
                       ))
@@ -337,7 +362,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                       DataCell(Text(
                         standardProducts[i]["damaged_stock"],
                         style: (selectedPositions.contains(i) &&
-                                selectedButtons.contains("damage" + "-" + i.toString()))
+                                selectedButtons
+                                    .contains("damage" + "-" + i.toString()))
                             ? TextStyle(color: Colors.green)
                             : TextStyle(color: Colors.black),
                       ))
@@ -347,7 +373,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                       DataCell(Text(
                         standardProducts[i]["complementary_stock"],
                         style: (selectedPositions.contains(i) &&
-                                selectedButtons.contains("complementary" + "-" + i.toString()))
+                                selectedButtons.contains(
+                                    "complementary" + "-" + i.toString()))
                             ? TextStyle(color: Colors.green)
                             : TextStyle(color: Colors.black),
                       ))
@@ -633,6 +660,50 @@ class SettingService {
   String _toJson(Setting setting) {
     var mapData = new Map();
     mapData["value"] = setting.value;
+    String json = jsonEncode(mapData);
+    return json;
+  }
+}
+
+class ProductAddition {
+  String quantity;
+  String productID;
+  String stockDate;
+  var errors = [];
+}
+
+class ProductAdditionService {
+  static final _headers = {'Content-Type': 'application/json'};
+
+  Future<ProductAddition> createProductAddition(
+      ProductAddition productAddition) async {
+    String json = _toJson(productAddition);
+    final response =
+        await http.post(addStockURL, headers: _headers, body: json);
+    var serverResponse = _fromJson(response.body);
+
+    return serverResponse;
+  }
+
+  ProductAddition _fromJson(String json) {
+    Map<String, dynamic> map = jsonDecode(json);
+    var productAddition = new ProductAddition();
+    if (map['errors'] != null && map["errors"].length > 0) {
+      productAddition.errors = map['errors'];
+    } else {
+      productAddition.quantity = map['added_stock'];
+      productAddition.productID = map['product_id'];
+      productAddition.stockDate = map['stock_date'];
+    }
+    return productAddition;
+  }
+
+  String _toJson(ProductAddition productAddition) {
+    var mapData = new Map();
+    mapData["quantity"] = productAddition.quantity;
+    mapData["product_id"] = productAddition.productID;
+    mapData["stock_date"] = productAddition.stockDate;
+
     String json = jsonEncode(mapData);
     return json;
   }
