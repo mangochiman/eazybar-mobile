@@ -142,7 +142,6 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
   }
 
   void updateClosedStock(BuildContext context, int i) {
-    print("Closing stock");
     int defaultValue = 0;
 
     int currentClosingStock = int.tryParse(_textFieldController.text) ?? defaultValue;
@@ -181,19 +180,81 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
   }
 
   void updateDamagedStock(BuildContext context, int i) {
+    int defaultValue = 0;
+    int currentClosingStock = int.tryParse(_textFieldController.text) ?? defaultValue;
+    ;
+    int currentProductStock =
+        int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
+    int currentDamagedStock =
+        int.tryParse(standardProducts[i]["damaged_stock"]) ?? defaultValue;
+    int currentComplementaryStock =
+        int.tryParse(standardProducts[i]["complementary_stock"]) ?? defaultValue;
+
+    int currentDifference = currentProductStock - currentClosingStock;
+    int total_sales = currentDifference - currentDamagedStock - currentComplementaryStock;
+
+    if (currentDamagedStock > currentProductStock) {
+      showMessage('Damages exceed current stock');
+      return null;
+    }
+
+    if (total_sales < 0) {
+      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
+    int totalInputValue = total_sales + currentDamagedStock + currentComplementaryStock;
+    if (totalInputValue > currentProductStock) {
+      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
     Navigator.of(context).pop();
     setState(() {
       standardProducts[i]["damaged_stock"] = _textFieldController.text;
     });
+
     _textFieldController.text = "";
+
   }
 
   void updateComplementaryStock(BuildContext context, int i) {
+    int defaultValue = 0;
+    int currentClosingStock = int.tryParse(_textFieldController.text) ?? defaultValue;
+    ;
+    int currentProductStock =
+        int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
+    int currentDamagedStock =
+        int.tryParse(standardProducts[i]["damaged_stock"]) ?? defaultValue;
+    int currentComplementaryStock =
+        int.tryParse(standardProducts[i]["complementary_stock"]) ?? defaultValue;
+
+    int currentDifference = currentProductStock - currentClosingStock;
+    int total_sales = currentDifference - currentDamagedStock - currentComplementaryStock;
+
+    if (currentComplementaryStock > currentProductStock) {
+      showMessage('Complementary exceeds current stock');
+      return null;
+    }
+
+    if (total_sales < 0) {
+      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
+    int totalInputValue = total_sales + currentDamagedStock + currentComplementaryStock;
+    if (totalInputValue > currentProductStock) {
+      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
     Navigator.of(context).pop();
     setState(() {
       standardProducts[i]["complementary_stock"] = _textFieldController.text;
     });
+
     _textFieldController.text = "";
+
   }
 
   _showAddStockDialog(BuildContext context, int position) async {
