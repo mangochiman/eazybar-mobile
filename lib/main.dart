@@ -133,6 +133,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
         Navigator.of(context).pop();
         setState(() {
           standardProducts[i]["add"] = value.quantity;
+          standardProducts[i]["current_stock"] = value.currentStock;
         });
         _textFieldController.text = "";
         showMessage('Success', Colors.blue);
@@ -669,6 +670,7 @@ class ProductAddition {
   String quantity;
   String productID;
   String stockDate;
+  String currentStock;
   var errors = [];
 }
 
@@ -694,6 +696,7 @@ class ProductAdditionService {
       productAddition.quantity = map['added_stock'];
       productAddition.productID = map['product_id'];
       productAddition.stockDate = map['stock_date'];
+      productAddition.currentStock = map['current_stock'];
     }
     return productAddition;
   }
