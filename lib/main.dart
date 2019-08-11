@@ -63,6 +63,9 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
     setState(() {
       var jsonResponse = json.decode(response.body);
       standardProducts = jsonResponse;
+      if (standardProducts.length > 0) {
+        stockCardAvailable = standardProducts[0]["stock_card_available"];
+      }
     });
   }
 
@@ -145,7 +148,7 @@ class StandardItemsPage extends StatefulWidget {
 }
 
 List standardProducts = [];
-bool _visible = true;
+bool stockCardAvailable = false;
 
 class _StandardItemsPageState extends State<StandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
@@ -160,6 +163,9 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
     setState(() {
       var jsonResponse = json.decode(response.body);
       standardProducts = jsonResponse;
+      if (standardProducts.length > 0) {
+        stockCardAvailable = standardProducts[0]["stock_card_available"];
+      }
     });
   }
 
@@ -585,7 +591,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                 ),
               ),
               AnimatedOpacity(
-                opacity: _visible ? 1.0 : 0.0,
+                opacity: !stockCardAvailable ? 1.0 : 0.0,
                 duration: Duration(milliseconds: 500),
                 child: ButtonTheme.bar(
                   child: new ButtonBar(
