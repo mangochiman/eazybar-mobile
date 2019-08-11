@@ -187,8 +187,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
 
   void updateDifferenceAndTotalSales(int i) {
     int defaultValue = 0;
-
-    int closingStock = int.tryParse(_textFieldController.text) ?? defaultValue;
+    final formatCurrency = NumberFormat("#,##0.00", "en_US");
+    int closingStock = int.tryParse(standardProducts[i]["closing_stock"]) ?? defaultValue;
     int currentStock =
         int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
     int damagedStock =
@@ -196,12 +196,15 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
     int complementaryStock =
         int.tryParse(standardProducts[i]["complementary_stock"]) ??
             defaultValue;
-    int currentPrice =
-        int.tryParse(standardProducts[i]["price"]) ?? defaultValue;
+    double currentPrice =
+        double.tryParse(standardProducts[i]["price"]) ?? defaultValue;
     int difference = currentStock - closingStock;
     var totalSales =
         currentPrice * (difference - damagedStock - complementaryStock);
-    setState(() {});
+    setState(() {
+      standardProducts[i]["difference"] = difference.toString();
+      standardProducts[i]["total_sales"] = 'MWK ${formatCurrency.format(totalSales)}';//totalSales.toString();
+    });
   }
 
   void updateAddedStock(BuildContext context, int i) {
@@ -233,7 +236,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
 
     int currentClosingStock =
         int.tryParse(_textFieldController.text) ?? defaultValue;
-    ;
+
     int currentProductStock =
         int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
     int currentDamagedStock =
@@ -270,17 +273,20 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
       standardProducts[i]["closing_stock"] = _textFieldController.text;
     });
     _textFieldController.text = "";
+    updateDifferenceAndTotalSales(i);
   }
 
   void updateDamagedStock(BuildContext context, int i) {
     int defaultValue = 0;
-    int currentClosingStock =
+    int currentDamagedStock =
         int.tryParse(_textFieldController.text) ?? defaultValue;
-    ;
+
+    int currentClosingStock =
+        int.tryParse(standardProducts[i]["closing_stock"]) ?? defaultValue;
+
     int currentProductStock =
         int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
-    int currentDamagedStock =
-        int.tryParse(standardProducts[i]["damaged_stock"]) ?? defaultValue;
+
     int currentComplementaryStock =
         int.tryParse(standardProducts[i]["complementary_stock"]) ??
             defaultValue;
@@ -314,20 +320,22 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
     });
 
     _textFieldController.text = "";
+    updateDifferenceAndTotalSales(i);
   }
 
   void updateComplementaryStock(BuildContext context, int i) {
     int defaultValue = 0;
-    int currentClosingStock =
+    int currentComplementaryStock =
         int.tryParse(_textFieldController.text) ?? defaultValue;
-    ;
+
+    int currentClosingStock =
+        int.tryParse(standardProducts[i]["closing_stock"]) ?? defaultValue;
+
     int currentProductStock =
         int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
+
     int currentDamagedStock =
         int.tryParse(standardProducts[i]["damaged_stock"]) ?? defaultValue;
-    int currentComplementaryStock =
-        int.tryParse(standardProducts[i]["complementary_stock"]) ??
-            defaultValue;
 
     int currentDifference = currentProductStock - currentClosingStock;
     int totalSales =
@@ -358,6 +366,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
     });
 
     _textFieldController.text = "";
+    updateDifferenceAndTotalSales(i);
   }
 
   _showAddStockDialog(BuildContext context, int position) async {
