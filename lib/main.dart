@@ -43,27 +43,86 @@ class MyApp extends StatelessWidget {
   }
 }
 
+String stockDate = DateFormat("yyyy-MM-dd")
+    .format(DateTime.parse(DateTime.now().toIso8601String()));
+
 class StockCardMainPage extends StatefulWidget {
   @override
   _StockCardMainPageState createState() => _StockCardMainPageState();
 }
 
 class _StockCardMainPageState extends State<StockCardMainPage> {
+  final TextEditingController _controller = new TextEditingController();
+  GlobalKey<_StandardItemsPageState> _keyChild1 = GlobalKey();
+
+  Future<String> getStandardItems() async {
+    var response = await http.get(
+        Uri.encodeFull(standardProductsDataURL + "?date=" + stockDate),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      standardProducts = jsonResponse;
+    });
+  }
+
+  Future _chooseDate(BuildContext context, String initialDateString) async {
+    var now = new DateTime.now();
+    var initialDate = convertToDate(initialDateString) ?? now;
+    initialDate = (initialDate.year >= 1900 && initialDate.isBefore(now)
+        ? initialDate
+        : now);
+
+    var result = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: new DateTime(1900),
+        lastDate: new DateTime.now());
+
+    if (result == null) return;
+    getStandardItems();
+
+    setState(() {
+      stockDate = DateFormat("yyyy-MM-dd")
+          .format(DateTime.parse(result.toIso8601String()));
+      _controller.text = new DateFormat.yMd().format(result);
+    });
+
+    //_keyChild1.currentState.initState();
+  }
+
+  DateTime convertToDate(String input) {
+    try {
+      var d = new DateFormat.yMd().parseStrict(input);
+      return d;
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      key: _keyChild1,
       home: DefaultTabController(
         length: 4,
         child: Scaffold(
           appBar: AppBar(
-            bottom: TabBar(tabs: [
-              Tab(text: 'Standard'),
-              Tab(text: 'Non standard'),
-              Tab(text: 'Debtors'),
-              Tab(text: 'Summary')
-            ], isScrollable: true),
-            title: Text('Stock card'),
-          ),
+              bottom: TabBar(tabs: [
+                Tab(text: 'Standard'),
+                Tab(text: 'Non standard'),
+                Tab(text: 'Debtors'),
+                Tab(text: 'Summary')
+              ], isScrollable: true),
+              title: Text('Stock card (' + stockDate + ')'),
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.calendar_today),
+                  onPressed: () {
+                    _chooseDate(context, _controller.text);
+                  },
+                )
+              ]),
           body: TabBarView(
             children: [
               StandardItemsPage(),
@@ -79,16 +138,19 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
 }
 
 class StandardItemsPage extends StatefulWidget {
+  StandardItemsPage({Key key}) : super(key: key);
+
   @override
   _StandardItemsPageState createState() => _StandardItemsPageState();
 }
 
+List standardProducts = [];
+bool _visible = true;
+
 class _StandardItemsPageState extends State<StandardItemsPage> {
-  List standardProducts = [];
   TextEditingController _textFieldController = TextEditingController();
   List selectedPositions = [];
   List selectedButtons = [];
-  String stockDate = "10-June-2019";
 
   Future<String> getStandardItems() async {
     var response = await http.get(
@@ -115,6 +177,25 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
   void showMessage(String message, [MaterialColor color = Colors.red]) {
     Scaffold.of(context).showSnackBar(
         new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
+  void updateDifferenceAndTotalSales(int i) {
+    int defaultValue = 0;
+
+    int closingStock = int.tryParse(_textFieldController.text) ?? defaultValue;
+    int currentStock =
+        int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
+    int damagedStock =
+        int.tryParse(standardProducts[i]["damaged_stock"]) ?? defaultValue;
+    int complementaryStock =
+        int.tryParse(standardProducts[i]["complementary_stock"]) ??
+            defaultValue;
+    int currentPrice =
+        int.tryParse(standardProducts[i]["price"]) ?? defaultValue;
+    int difference = currentStock - closingStock;
+    var totalSales =
+        currentPrice * (difference - damagedStock - complementaryStock);
+    setState(() {});
   }
 
   void updateAddedStock(BuildContext context, int i) {
@@ -144,31 +225,37 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
   void updateClosedStock(BuildContext context, int i) {
     int defaultValue = 0;
 
-    int currentClosingStock = int.tryParse(_textFieldController.text) ?? defaultValue;
+    int currentClosingStock =
+        int.tryParse(_textFieldController.text) ?? defaultValue;
     ;
     int currentProductStock =
         int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
     int currentDamagedStock =
         int.tryParse(standardProducts[i]["damaged_stock"]) ?? defaultValue;
     int currentComplementaryStock =
-        int.tryParse(standardProducts[i]["complementary_stock"]) ?? defaultValue;
+        int.tryParse(standardProducts[i]["complementary_stock"]) ??
+            defaultValue;
 
     int currentDifference = currentProductStock - currentClosingStock;
-    int total_sales = currentDifference - currentDamagedStock - currentComplementaryStock;
+    int totalSales =
+        currentDifference - currentDamagedStock - currentComplementaryStock;
 
     if (currentClosingStock > currentProductStock) {
       showMessage('Closing amount exceeds current stock');
       return null;
     }
 
-    if (total_sales < 0) {
-      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+    if (totalSales < 0) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
       return null;
     }
 
-    int totalInputValue = total_sales + currentDamagedStock + currentComplementaryStock;
+    int totalInputValue =
+        totalSales + currentDamagedStock + currentComplementaryStock;
     if (totalInputValue > currentProductStock) {
-      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
       return null;
     }
 
@@ -181,31 +268,37 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
 
   void updateDamagedStock(BuildContext context, int i) {
     int defaultValue = 0;
-    int currentClosingStock = int.tryParse(_textFieldController.text) ?? defaultValue;
+    int currentClosingStock =
+        int.tryParse(_textFieldController.text) ?? defaultValue;
     ;
     int currentProductStock =
         int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
     int currentDamagedStock =
         int.tryParse(standardProducts[i]["damaged_stock"]) ?? defaultValue;
     int currentComplementaryStock =
-        int.tryParse(standardProducts[i]["complementary_stock"]) ?? defaultValue;
+        int.tryParse(standardProducts[i]["complementary_stock"]) ??
+            defaultValue;
 
     int currentDifference = currentProductStock - currentClosingStock;
-    int total_sales = currentDifference - currentDamagedStock - currentComplementaryStock;
+    int totalSales =
+        currentDifference - currentDamagedStock - currentComplementaryStock;
 
     if (currentDamagedStock > currentProductStock) {
       showMessage('Damages exceed current stock');
       return null;
     }
 
-    if (total_sales < 0) {
-      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+    if (totalSales < 0) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
       return null;
     }
 
-    int totalInputValue = total_sales + currentDamagedStock + currentComplementaryStock;
+    int totalInputValue =
+        totalSales + currentDamagedStock + currentComplementaryStock;
     if (totalInputValue > currentProductStock) {
-      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
       return null;
     }
 
@@ -215,36 +308,41 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
     });
 
     _textFieldController.text = "";
-
   }
 
   void updateComplementaryStock(BuildContext context, int i) {
     int defaultValue = 0;
-    int currentClosingStock = int.tryParse(_textFieldController.text) ?? defaultValue;
+    int currentClosingStock =
+        int.tryParse(_textFieldController.text) ?? defaultValue;
     ;
     int currentProductStock =
         int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
     int currentDamagedStock =
         int.tryParse(standardProducts[i]["damaged_stock"]) ?? defaultValue;
     int currentComplementaryStock =
-        int.tryParse(standardProducts[i]["complementary_stock"]) ?? defaultValue;
+        int.tryParse(standardProducts[i]["complementary_stock"]) ??
+            defaultValue;
 
     int currentDifference = currentProductStock - currentClosingStock;
-    int total_sales = currentDifference - currentDamagedStock - currentComplementaryStock;
+    int totalSales =
+        currentDifference - currentDamagedStock - currentComplementaryStock;
 
     if (currentComplementaryStock > currentProductStock) {
       showMessage('Complementary exceeds current stock');
       return null;
     }
 
-    if (total_sales < 0) {
-      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+    if (totalSales < 0) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
       return null;
     }
 
-    int totalInputValue = total_sales + currentDamagedStock + currentComplementaryStock;
+    int totalInputValue =
+        totalSales + currentDamagedStock + currentComplementaryStock;
     if (totalInputValue > currentProductStock) {
-      showMessage('Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
       return null;
     }
 
@@ -254,7 +352,6 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
     });
 
     _textFieldController.text = "";
-
   }
 
   _showAddStockDialog(BuildContext context, int position) async {
@@ -482,40 +579,44 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
                     ]),
                     DataRow(cells: [
                       DataCell(Text("Total sales")),
-                      DataCell(Text("??"))
+                      DataCell(Text(standardProducts[i]["total_sales"]))
                     ])
                   ],
                 ),
               ),
-              ButtonTheme.bar(
-                child: new ButtonBar(
-                  children: <Widget>[
-                    new FlatButton(
-                      child: const Text('Add'),
-                      onPressed: () {
-                        print(standardProducts[i]);
-                        _showAddStockDialog(context, i);
-                      },
-                    ),
-                    new FlatButton(
-                      child: const Text('Close'),
-                      onPressed: () {
-                        _showCloseStockDialog(context, i);
-                      },
-                    ),
-                    new FlatButton(
-                      child: const Text('Damages'),
-                      onPressed: () {
-                        _showDamagedStockDialog(context, i);
-                      },
-                    ),
-                    new FlatButton(
-                      child: const Text('Complementary'),
-                      onPressed: () {
-                        _showComplementaryStockDialog(context, i);
-                      },
-                    )
-                  ],
+              AnimatedOpacity(
+                opacity: _visible ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: ButtonTheme.bar(
+                  child: new ButtonBar(
+                    children: <Widget>[
+                      new FlatButton(
+                        child: const Text('Add'),
+                        onPressed: () {
+                          print(standardProducts[i]);
+                          _showAddStockDialog(context, i);
+                        },
+                      ),
+                      new FlatButton(
+                        child: const Text('Close'),
+                        onPressed: () {
+                          _showCloseStockDialog(context, i);
+                        },
+                      ),
+                      new FlatButton(
+                        child: const Text('Damages'),
+                        onPressed: () {
+                          _showDamagedStockDialog(context, i);
+                        },
+                      ),
+                      new FlatButton(
+                        child: const Text('Complementary'),
+                        onPressed: () {
+                          _showComplementaryStockDialog(context, i);
+                        },
+                      )
+                    ],
+                  ),
                 ),
               )
             ],
@@ -529,7 +630,9 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
       color: Colors.blueGrey[500],
       child: new Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[new Expanded(child: getListView())],
+        children: <Widget>[
+          new Expanded(child: getListView()),
+        ],
       ),
     );
   }
