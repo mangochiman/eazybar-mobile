@@ -4,7 +4,7 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.43.102:2000";
+const String URL = "http://192.168.12.69:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -26,6 +26,7 @@ String reportsUrl = URL + '/api/v1/reports';
 String debtPaymentPropertyURL = URL + '/api/v1/debt_payment_period';
 String updateSettingsURL = URL + '/api/v1/update_settings';
 String standardProductsDataURL = URL + '/api/v1/standard_products_data';
+String nonStandardProductsDataURL = URL + '/api/v1/non_standard_products_data';
 
 String addStockURL = URL + '/api/v1/add_stock';
 
@@ -140,6 +141,11 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
   }
 }
 
+
+List standardProducts = [];
+List nonStandardProducts = [];
+bool stockCardAvailable = false;
+
 class StandardItemsPage extends StatefulWidget {
   StandardItemsPage({Key key}) : super(key: key);
 
@@ -147,10 +153,7 @@ class StandardItemsPage extends StatefulWidget {
   _StandardItemsPageState createState() => _StandardItemsPageState();
 }
 
-List standardProducts = [];
-bool stockCardAvailable = false;
-
-class _StandardItemsPageState extends State<StandardItemsPage> {
+class _StandardItemsPageState extends State<StandardItemsPage> with AutomaticKeepAliveClientMixin<StandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
   List selectedPositions = [];
   List selectedButtons = [];
@@ -170,6 +173,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
   }
 
   @override
+  bool get wantKeepAlive => true;
   void initState() {
     this.getStandardItems();
   }
@@ -640,6 +644,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
   }
 
   Widget build(BuildContext context) {
+    super.build(context);
     return Container(
       padding: EdgeInsets.only(top: 10.0),
       color: Colors.blueGrey[500],
@@ -652,6 +657,531 @@ class _StandardItemsPageState extends State<StandardItemsPage> {
     );
   }
 }
+
+
+
+
+
+//*******************************************************************************************************************************
+//*******************************************************************************************************************************
+
+
+class NonStandardItemsPage extends StatefulWidget {
+  NonStandardItemsPage({Key key}) : super(key: key);
+
+  @override
+  _NonStandardItemsPageState createState() => _NonStandardItemsPageState();
+}
+
+class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
+  TextEditingController _textFieldController = TextEditingController();
+  List selectedPositions = [];
+  List selectedButtons = [];
+
+  Future<String> getNonStandardItems() async {
+    var response = await http.get(
+        Uri.encodeFull(nonStandardProductsDataURL + "?date=" + stockDate),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      nonStandardProducts = jsonResponse;
+      if (nonStandardProducts.length > 0) {
+        stockCardAvailable = nonStandardProducts[0]["stock_card_available"];
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    this.getNonStandardItems();
+  }
+
+  ListView getListView() => new ListView.builder(
+      itemCount: nonStandardProducts.length,
+      itemBuilder: (BuildContext context, int position) {
+        return getRow(position);
+      });
+
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    Scaffold.of(context).showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
+  void updateDifferenceAndTotalSales(int i) {
+    int defaultValue = 0;
+    final formatCurrency = NumberFormat("#,##0.00", "en_US");
+    int closingStock = int.tryParse(nonStandardProducts[i]["closing_stock"]) ?? defaultValue;
+    int currentStock =
+        int.tryParse(nonStandardProducts[i]["current_stock"]) ?? defaultValue;
+    int damagedStock =
+        int.tryParse(nonStandardProducts[i]["damaged_stock"]) ?? defaultValue;
+    int complementaryStock =
+        int.tryParse(nonStandardProducts[i]["complementary_stock"]) ??
+            defaultValue;
+    double currentPrice =
+        double.tryParse(nonStandardProducts[i]["price"]) ?? defaultValue;
+    int difference = currentStock - closingStock;
+    var totalSales =
+        currentPrice * (difference - damagedStock - complementaryStock);
+    setState(() {
+      nonStandardProducts[i]["difference"] = difference.toString();
+      nonStandardProducts[i]["total_sales"] = 'MWK ${formatCurrency.format(totalSales)}';//totalSales.toString();
+    });
+  }
+
+  void updateAddedStock(BuildContext context, int i) {
+    var productAdditionService = ProductAdditionService();
+    ProductAddition newProductAddition = new ProductAddition();
+    newProductAddition.quantity = _textFieldController.text;
+    newProductAddition.productID = nonStandardProducts[i]["product_id"].toString();
+    newProductAddition.stockDate = stockDate;
+
+    productAdditionService
+        .createProductAddition(newProductAddition)
+        .then((value) {
+      if (value.errors != null && value.errors.length > 0) {
+        showMessage('Errors:\n ${value.errors.join('\n')}', Colors.red);
+      } else {
+        Navigator.of(context).pop();
+        setState(() {
+          nonStandardProducts[i]["add"] = value.quantity;
+          nonStandardProducts[i]["current_stock"] = value.currentStock;
+        });
+        _textFieldController.text = "";
+        showMessage('Success', Colors.blue);
+      }
+    });
+  }
+
+  void updateClosedStock(BuildContext context, int i) {
+    int defaultValue = 0;
+
+    int currentClosingStock =
+        int.tryParse(_textFieldController.text) ?? defaultValue;
+
+    int currentProductStock =
+        int.tryParse(nonStandardProducts[i]["current_stock"]) ?? defaultValue;
+    int currentDamagedStock =
+        int.tryParse(nonStandardProducts[i]["damaged_stock"]) ?? defaultValue;
+    int currentComplementaryStock =
+        int.tryParse(nonStandardProducts[i]["complementary_stock"]) ??
+            defaultValue;
+
+    int currentDifference = currentProductStock - currentClosingStock;
+    int totalSales =
+        currentDifference - currentDamagedStock - currentComplementaryStock;
+
+    if (currentClosingStock > currentProductStock) {
+      showMessage('Closing amount exceeds current stock');
+      return null;
+    }
+
+    if (totalSales < 0) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
+    int totalInputValue =
+        totalSales + currentDamagedStock + currentComplementaryStock;
+    if (totalInputValue > currentProductStock) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
+    Navigator.of(context).pop();
+    setState(() {
+      nonStandardProducts[i]["closing_stock"] = _textFieldController.text;
+    });
+    _textFieldController.text = "";
+    updateDifferenceAndTotalSales(i);
+  }
+
+  void updateDamagedStock(BuildContext context, int i) {
+    int defaultValue = 0;
+    int currentDamagedStock =
+        int.tryParse(_textFieldController.text) ?? defaultValue;
+
+    int currentClosingStock =
+        int.tryParse(nonStandardProducts[i]["closing_stock"]) ?? defaultValue;
+
+    int currentProductStock =
+        int.tryParse(nonStandardProducts[i]["current_stock"]) ?? defaultValue;
+
+    int currentComplementaryStock =
+        int.tryParse(nonStandardProducts[i]["complementary_stock"]) ??
+            defaultValue;
+
+    int currentDifference = currentProductStock - currentClosingStock;
+    int totalSales =
+        currentDifference - currentDamagedStock - currentComplementaryStock;
+
+    if (currentDamagedStock > currentProductStock) {
+      showMessage('Damages exceed current stock');
+      return null;
+    }
+
+    if (totalSales < 0) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
+    int totalInputValue =
+        totalSales + currentDamagedStock + currentComplementaryStock;
+    if (totalInputValue > currentProductStock) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
+    Navigator.of(context).pop();
+    setState(() {
+      nonStandardProducts[i]["damaged_stock"] = _textFieldController.text;
+    });
+
+    _textFieldController.text = "";
+    updateDifferenceAndTotalSales(i);
+  }
+
+  void updateComplementaryStock(BuildContext context, int i) {
+    int defaultValue = 0;
+    int currentComplementaryStock =
+        int.tryParse(_textFieldController.text) ?? defaultValue;
+
+    int currentClosingStock =
+        int.tryParse(nonStandardProducts[i]["closing_stock"]) ?? defaultValue;
+
+    int currentProductStock =
+        int.tryParse(nonStandardProducts[i]["current_stock"]) ?? defaultValue;
+
+    int currentDamagedStock =
+        int.tryParse(nonStandardProducts[i]["damaged_stock"]) ?? defaultValue;
+
+    int currentDifference = currentProductStock - currentClosingStock;
+    int totalSales =
+        currentDifference - currentDamagedStock - currentComplementaryStock;
+
+    if (currentComplementaryStock > currentProductStock) {
+      showMessage('Complementary exceeds current stock');
+      return null;
+    }
+
+    if (totalSales < 0) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
+    int totalInputValue =
+        totalSales + currentDamagedStock + currentComplementaryStock;
+    if (totalInputValue > currentProductStock) {
+      showMessage(
+          'Closing stock + Damages + Complementary is exceeding current stock. Edit the input and try again');
+      return null;
+    }
+
+    Navigator.of(context).pop();
+    setState(() {
+      nonStandardProducts[i]["complementary_stock"] = _textFieldController.text;
+    });
+
+    _textFieldController.text = "";
+    updateDifferenceAndTotalSales(i);
+  }
+
+  _showAddStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Add stock'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Add stock"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Update stock'),
+                onPressed: () {
+                  setState(() {
+                    selectedPositions.add(position);
+                    selectedButtons.add("add" + "-" + position.toString());
+                  });
+                  updateAddedStock(context, position);
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  _showCloseStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Close stock'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Closing amount"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Close stock'),
+                onPressed: () {
+                  setState(() {
+                    selectedPositions.add(position);
+                    selectedButtons.add("close" + "-" + position.toString());
+                  });
+                  updateClosedStock(context, position);
+                  //_updateSettings();
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  _showDamagedStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Update damages'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Damaged stock"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Update'),
+                onPressed: () {
+                  setState(() {
+                    selectedPositions.add(position);
+                    selectedButtons.add("damage" + "-" + position.toString());
+                  });
+                  updateDamagedStock(context, position);
+                  //_updateSettings();
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  _showComplementaryStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Update complementary'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Complementary stock"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Update'),
+                onPressed: () {
+                  setState(() {
+                    selectedPositions.add(position);
+                    selectedButtons
+                        .add("complementary" + "-" + position.toString());
+                  });
+                  updateComplementaryStock(context, position);
+                  //_updateSettings();
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  Widget getRow(int i) {
+    return new Padding(
+        padding: new EdgeInsets.all(1.0),
+        child: new Card(
+          child: new Column(
+            children: <Widget>[
+              ListTile(
+                  title: Text(
+                    nonStandardProducts[i]["product_name"],
+                    style:
+                    TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                  )),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                child: DataTable(
+                  dataRowHeight: 16,
+                  columns: [
+                    DataColumn(
+                      label: Text("Key"),
+                      numeric: false,
+                      tooltip: "",
+                    ),
+                    DataColumn(
+                      label: Text('Value'),
+                      numeric: false,
+                      tooltip: "",
+                    ),
+                  ],
+                  rows: [
+                    DataRow(cells: [
+                      DataCell(Text("Opening stock")),
+                      DataCell(Text(nonStandardProducts[i]["opening"]))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Added stock")),
+                      DataCell(Text(nonStandardProducts[i]["add"],
+                          style: (selectedPositions.contains(i) &&
+                              selectedButtons
+                                  .contains("add" + "-" + i.toString()))
+                              ? TextStyle(color: Colors.green)
+                              : TextStyle(color: Colors.black)))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Current stock")),
+                      DataCell(Text(nonStandardProducts[i]["current_stock"]))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Closing stock")),
+                      DataCell(Text(
+                        nonStandardProducts[i]["closing_stock"],
+                        style: (selectedPositions.contains(i) &&
+                            selectedButtons
+                                .contains("close" + "-" + i.toString()))
+                            ? TextStyle(color: Colors.green)
+                            : TextStyle(color: Colors.black),
+                      ))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Damaged stock")),
+                      DataCell(Text(
+                        nonStandardProducts[i]["damaged_stock"],
+                        style: (selectedPositions.contains(i) &&
+                            selectedButtons
+                                .contains("damage" + "-" + i.toString()))
+                            ? TextStyle(color: Colors.green)
+                            : TextStyle(color: Colors.black),
+                      ))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Complementary stock")),
+                      DataCell(Text(
+                        nonStandardProducts[i]["complementary_stock"],
+                        style: (selectedPositions.contains(i) &&
+                            selectedButtons.contains(
+                                "complementary" + "-" + i.toString()))
+                            ? TextStyle(color: Colors.green)
+                            : TextStyle(color: Colors.black),
+                      ))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Difference")),
+                      DataCell(Text(nonStandardProducts[i]["difference"]))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Price")),
+                      DataCell(Text(nonStandardProducts[i]["product_price"]))
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text("Total sales")),
+                      DataCell(Text(nonStandardProducts[i]["total_sales"]))
+                    ])
+                  ],
+                ),
+              ),
+              AnimatedOpacity(
+                opacity: !stockCardAvailable ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: ButtonTheme.bar(
+                  child: new ButtonBar(
+                    children: <Widget>[
+                      new FlatButton(
+                        child: const Text('Add'),
+                        onPressed: () {
+                          print(nonStandardProducts[i]);
+                          _showAddStockDialog(context, i);
+                        },
+                      ),
+                      new FlatButton(
+                        child: const Text('Close'),
+                        onPressed: () {
+                          _showCloseStockDialog(context, i);
+                        },
+                      ),
+                      new FlatButton(
+                        child: const Text('Damages'),
+                        onPressed: () {
+                          _showDamagedStockDialog(context, i);
+                        },
+                      ),
+                      new FlatButton(
+                        child: const Text('Complementary'),
+                        onPressed: () {
+                          _showComplementaryStockDialog(context, i);
+                        },
+                      )
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ));
+  }
+
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: 10.0),
+      color: Colors.blueGrey[500],
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          new Expanded(child: getListView()),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+
+//********************************************************************************************************************************
+//********************************************************************************************************************************
 
 class NewPricePage extends StatefulWidget {
   final String productID;
