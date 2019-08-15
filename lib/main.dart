@@ -130,7 +130,7 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
           body: TabBarView(
             children: [
               StandardItemsPage(),
-              Text('Non standard items'),
+              NonStandardItemsPage(),
               Text('Debtors'),
               Text('Summary')
             ],
@@ -140,7 +140,6 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
     );
   }
 }
-
 
 List standardProducts = [];
 List nonStandardProducts = [];
@@ -153,7 +152,8 @@ class StandardItemsPage extends StatefulWidget {
   _StandardItemsPageState createState() => _StandardItemsPageState();
 }
 
-class _StandardItemsPageState extends State<StandardItemsPage> with AutomaticKeepAliveClientMixin<StandardItemsPage> {
+class _StandardItemsPageState extends State<StandardItemsPage>
+    with AutomaticKeepAliveClientMixin<StandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
   List selectedPositions = [];
   List selectedButtons = [];
@@ -174,6 +174,7 @@ class _StandardItemsPageState extends State<StandardItemsPage> with AutomaticKee
 
   @override
   bool get wantKeepAlive => true;
+
   void initState() {
     this.getStandardItems();
   }
@@ -192,7 +193,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> with AutomaticKee
   void updateDifferenceAndTotalSales(int i) {
     int defaultValue = 0;
     final formatCurrency = NumberFormat("#,##0.00", "en_US");
-    int closingStock = int.tryParse(standardProducts[i]["closing_stock"]) ?? defaultValue;
+    int closingStock =
+        int.tryParse(standardProducts[i]["closing_stock"]) ?? defaultValue;
     int currentStock =
         int.tryParse(standardProducts[i]["current_stock"]) ?? defaultValue;
     int damagedStock =
@@ -207,7 +209,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> with AutomaticKee
         currentPrice * (difference - damagedStock - complementaryStock);
     setState(() {
       standardProducts[i]["difference"] = difference.toString();
-      standardProducts[i]["total_sales"] = 'MWK ${formatCurrency.format(totalSales)}';//totalSales.toString();
+      standardProducts[i]["total_sales"] =
+          'MWK ${formatCurrency.format(totalSales)}'; //totalSales.toString();
     });
   }
 
@@ -658,13 +661,8 @@ class _StandardItemsPageState extends State<StandardItemsPage> with AutomaticKee
   }
 }
 
-
-
-
-
 //*******************************************************************************************************************************
 //*******************************************************************************************************************************
-
 
 class NonStandardItemsPage extends StatefulWidget {
   NonStandardItemsPage({Key key}) : super(key: key);
@@ -673,7 +671,8 @@ class NonStandardItemsPage extends StatefulWidget {
   _NonStandardItemsPageState createState() => _NonStandardItemsPageState();
 }
 
-class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
+class _NonStandardItemsPageState extends State<NonStandardItemsPage>
+    with AutomaticKeepAliveClientMixin<NonStandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
   List selectedPositions = [];
   List selectedButtons = [];
@@ -693,6 +692,8 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
   void initState() {
     this.getNonStandardItems();
   }
@@ -711,22 +712,14 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
   void updateDifferenceAndTotalSales(int i) {
     int defaultValue = 0;
     final formatCurrency = NumberFormat("#,##0.00", "en_US");
-    int closingStock = int.tryParse(nonStandardProducts[i]["closing_stock"]) ?? defaultValue;
-    int currentStock =
-        int.tryParse(nonStandardProducts[i]["current_stock"]) ?? defaultValue;
-    int damagedStock =
-        int.tryParse(nonStandardProducts[i]["damaged_stock"]) ?? defaultValue;
-    int complementaryStock =
-        int.tryParse(nonStandardProducts[i]["complementary_stock"]) ??
-            defaultValue;
+    int closingStock =
+        int.tryParse(nonStandardProducts[i]["closing_stock"]) ?? defaultValue;
     double currentPrice =
         double.tryParse(nonStandardProducts[i]["price"]) ?? defaultValue;
-    int difference = currentStock - closingStock;
-    var totalSales =
-        currentPrice * (difference - damagedStock - complementaryStock);
+    var totalSales = currentPrice * closingStock;
     setState(() {
-      nonStandardProducts[i]["difference"] = difference.toString();
-      nonStandardProducts[i]["total_sales"] = 'MWK ${formatCurrency.format(totalSales)}';//totalSales.toString();
+      nonStandardProducts[i]["total_sales"] =
+          'MWK ${formatCurrency.format(totalSales)}';
     });
   }
 
@@ -734,7 +727,8 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
     var productAdditionService = ProductAdditionService();
     ProductAddition newProductAddition = new ProductAddition();
     newProductAddition.quantity = _textFieldController.text;
-    newProductAddition.productID = nonStandardProducts[i]["product_id"].toString();
+    newProductAddition.productID =
+        nonStandardProducts[i]["product_id"].toString();
     newProductAddition.stockDate = stockDate;
 
     productAdditionService
@@ -768,9 +762,7 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
         int.tryParse(nonStandardProducts[i]["complementary_stock"]) ??
             defaultValue;
 
-    int currentDifference = currentProductStock - currentClosingStock;
-    int totalSales =
-        currentDifference - currentDamagedStock - currentComplementaryStock;
+    int totalSales = currentClosingStock;
 
     if (currentClosingStock > currentProductStock) {
       showMessage('Closing amount exceeds current stock');
@@ -814,9 +806,7 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
         int.tryParse(nonStandardProducts[i]["complementary_stock"]) ??
             defaultValue;
 
-    int currentDifference = currentProductStock - currentClosingStock;
-    int totalSales =
-        currentDifference - currentDamagedStock - currentComplementaryStock;
+    int totalSales = currentClosingStock;
 
     if (currentDamagedStock > currentProductStock) {
       showMessage('Damages exceed current stock');
@@ -860,9 +850,7 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
     int currentDamagedStock =
         int.tryParse(nonStandardProducts[i]["damaged_stock"]) ?? defaultValue;
 
-    int currentDifference = currentProductStock - currentClosingStock;
-    int totalSales =
-        currentDifference - currentDamagedStock - currentComplementaryStock;
+    int totalSales = currentClosingStock;
 
     if (currentComplementaryStock > currentProductStock) {
       showMessage('Complementary exceeds current stock');
@@ -1036,10 +1024,10 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
             children: <Widget>[
               ListTile(
                   title: Text(
-                    nonStandardProducts[i]["product_name"],
-                    style:
+                nonStandardProducts[i]["product_name"],
+                style:
                     TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                  )),
+              )),
               Container(
                 width: MediaQuery.of(context).size.width,
                 child: DataTable(
@@ -1065,8 +1053,8 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
                       DataCell(Text("Added stock")),
                       DataCell(Text(nonStandardProducts[i]["add"],
                           style: (selectedPositions.contains(i) &&
-                              selectedButtons
-                                  .contains("add" + "-" + i.toString()))
+                                  selectedButtons
+                                      .contains("add" + "-" + i.toString()))
                               ? TextStyle(color: Colors.green)
                               : TextStyle(color: Colors.black)))
                     ]),
@@ -1079,8 +1067,8 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
                       DataCell(Text(
                         nonStandardProducts[i]["closing_stock"],
                         style: (selectedPositions.contains(i) &&
-                            selectedButtons
-                                .contains("close" + "-" + i.toString()))
+                                selectedButtons
+                                    .contains("close" + "-" + i.toString()))
                             ? TextStyle(color: Colors.green)
                             : TextStyle(color: Colors.black),
                       ))
@@ -1090,8 +1078,8 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
                       DataCell(Text(
                         nonStandardProducts[i]["damaged_stock"],
                         style: (selectedPositions.contains(i) &&
-                            selectedButtons
-                                .contains("damage" + "-" + i.toString()))
+                                selectedButtons
+                                    .contains("damage" + "-" + i.toString()))
                             ? TextStyle(color: Colors.green)
                             : TextStyle(color: Colors.black),
                       ))
@@ -1101,15 +1089,11 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
                       DataCell(Text(
                         nonStandardProducts[i]["complementary_stock"],
                         style: (selectedPositions.contains(i) &&
-                            selectedButtons.contains(
-                                "complementary" + "-" + i.toString()))
+                                selectedButtons.contains(
+                                    "complementary" + "-" + i.toString()))
                             ? TextStyle(color: Colors.green)
                             : TextStyle(color: Colors.black),
                       ))
-                    ]),
-                    DataRow(cells: [
-                      DataCell(Text("Difference")),
-                      DataCell(Text(nonStandardProducts[i]["difference"]))
                     ]),
                     DataRow(cells: [
                       DataCell(Text("Price")),
@@ -1163,6 +1147,7 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
   }
 
   Widget build(BuildContext context) {
+    super.build(context);
     return Container(
       padding: EdgeInsets.only(top: 10.0),
       color: Colors.blueGrey[500],
@@ -1175,10 +1160,6 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage> {
     );
   }
 }
-
-
-
-
 
 //********************************************************************************************************************************
 //********************************************************************************************************************************
