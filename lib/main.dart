@@ -1208,7 +1208,9 @@ class DebtorsOnDatePage extends StatefulWidget {
 
 class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
     with AutomaticKeepAliveClientMixin<DebtorsOnDatePage> {
-  TextEditingController _textFieldController = TextEditingController();
+  TextEditingController _nameFieldController = TextEditingController();
+  TextEditingController _amountFieldController = TextEditingController();
+  TextEditingController _phoneNumberFieldController = TextEditingController();
 
   Future<String> getDebtorsOnDate() async {
     print(stockDate);
@@ -1234,16 +1236,36 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
         new SnackBar(backgroundColor: color, content: new Text(message)));
   }
 
-  _showComplementaryStockDialog(BuildContext context, int position) async {
+  _showAddDebtorsDialog(BuildContext context) async {
     return showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Update complementary'),
-            content: TextField(
-              controller: _textFieldController,
-              decoration: InputDecoration(hintText: "Complementary stock"),
-              keyboardType: TextInputType.number,
+            title: Text('New debtor'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  controller: _nameFieldController,
+                  decoration: InputDecoration(
+                      hintText: "Debtor's Name"
+                  ),
+                ),
+                TextField(
+                  controller: _amountFieldController,
+                  decoration: InputDecoration(
+                      hintText: "Amount"
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: _phoneNumberFieldController,
+                  decoration: InputDecoration(
+                      hintText: "Phone number"
+                  ),
+                  keyboardType: TextInputType.phone,
+                )
+              ],
             ),
             actions: <Widget>[
               new FlatButton(
@@ -1253,12 +1275,8 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
                 },
               ),
               new FlatButton(
-                child: new Text('Update'),
-                onPressed: () {
-                  setState(() {});
-
-                  //_updateSettings();
-                },
+                child: new Text('SUBMIT'),
+                onPressed: () {},
               )
             ],
           );
@@ -1271,23 +1289,29 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
       floatingActionButton: Visibility(
         visible: !stockCardAvailable,
         child: FloatingActionButton(
-          onPressed: null,
+          onPressed: () {
+            _showAddDebtorsDialog(context);
+          },
           tooltip: 'Add debtor',
           child: new Icon(Icons.add),
         ),
       ),
-      body: ListView.builder(
-          itemCount: debtorsOnDate.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text(debtorsOnDate[i]["name"]),
-                subtitle: Text(
-                    'Amount owed: ${debtorsOnDate[i]["amount_owed"]} | Amount paid: ${debtorsOnDate[i]["amount_paid"]} | Balance: ${debtorsOnDate[i]["balance_due"]} | Phone #: ${debtorsOnDate[i]["phone_number"]} | Date: ${debtorsOnDate[i]["date"]}'),
-                isThreeLine: true,
-              ),
-            );
-          }),
+      body: Container(
+          height: 300.0, // Change as per your requirement
+
+          child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: debtorsOnDate.length,
+              itemBuilder: (BuildContext context, i) {
+                return Card(
+                  child: ListTile(
+                    title: Text(debtorsOnDate[i]["name"]),
+                    subtitle: Text(
+                        'Amount owed: ${debtorsOnDate[i]["amount_owed"]} | Amount paid: ${debtorsOnDate[i]["amount_paid"]} | Balance: ${debtorsOnDate[i]["balance_due"]} | Phone #: ${debtorsOnDate[i]["phone_number"]} | Date: ${debtorsOnDate[i]["date"]}'),
+                    isThreeLine: true,
+                  ),
+                );
+              })),
     );
   }
 }
