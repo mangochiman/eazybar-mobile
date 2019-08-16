@@ -27,6 +27,7 @@ String debtPaymentPropertyURL = URL + '/api/v1/debt_payment_period';
 String updateSettingsURL = URL + '/api/v1/update_settings';
 String standardProductsDataURL = URL + '/api/v1/standard_products_data';
 String nonStandardProductsDataURL = URL + '/api/v1/non_standard_products_data';
+String debtorsOnDateURL = URL + '/api/v1/debtors_on_date';
 
 String addStockURL = URL + '/api/v1/add_stock';
 
@@ -62,11 +63,38 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
         headers: {"Accept": "application/json"});
 
     setState(() {
+      standardProducts = [];
       var jsonResponse = json.decode(response.body);
       standardProducts = jsonResponse;
       if (standardProducts.length > 0) {
         stockCardAvailable = standardProducts[0]["stock_card_available"];
       }
+    });
+  }
+
+  Future<String> getNonStandardItems() async {
+    var response = await http.get(
+        Uri.encodeFull(nonStandardProductsDataURL + "?date=" + stockDate),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      nonStandardProducts = [];
+      var jsonResponse = json.decode(response.body);
+      nonStandardProducts = jsonResponse;
+      if (nonStandardProducts.length > 0) {
+        stockCardAvailable = nonStandardProducts[0]["stock_card_available"];
+      }
+    });
+  }
+
+  Future<String> getDebtorsOnDate() async {
+    var response = await http.get(
+        Uri.encodeFull(debtorsOnDateURL + "?stock_date=" + stockDate),
+        headers: {"Accept": "application/json"});
+    setState(() {
+      debtorsOnDate = [];
+      var jsonResponse = json.decode(response.body);
+      debtorsOnDate = jsonResponse;
     });
   }
 
@@ -84,13 +112,17 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
         lastDate: new DateTime.now());
 
     if (result == null) return;
-    getStandardItems();
-
     setState(() {
       stockDate = DateFormat("yyyy-MM-dd")
           .format(DateTime.parse(result.toIso8601String()));
       _controller.text = new DateFormat.yMd().format(result);
     });
+
+    getStandardItems();
+    getNonStandardItems();
+    getDebtorsOnDate();
+    selectedPositions = [];
+    selectedButtons = [];
 
     //_keyChild1.currentState.initState();
   }
@@ -131,7 +163,7 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
             children: [
               StandardItemsPage(),
               NonStandardItemsPage(),
-              Text('Debtors'),
+              DebtorsOnDatePage(),
               Text('Summary')
             ],
           ),
@@ -144,6 +176,8 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
 List standardProducts = [];
 List nonStandardProducts = [];
 bool stockCardAvailable = false;
+List selectedPositions = [];
+List selectedButtons = [];
 
 class StandardItemsPage extends StatefulWidget {
   StandardItemsPage({Key key}) : super(key: key);
@@ -155,8 +189,6 @@ class StandardItemsPage extends StatefulWidget {
 class _StandardItemsPageState extends State<StandardItemsPage>
     with AutomaticKeepAliveClientMixin<StandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
-  List selectedPositions = [];
-  List selectedButtons = [];
 
   Future<String> getStandardItems() async {
     var response = await http.get(
@@ -1162,6 +1194,104 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
 }
 
 //********************************************************************************************************************************
+//********************************************************************************************************************************
+
+//*******************************************************************************************************************************
+List debtorsOnDate = [];
+
+class DebtorsOnDatePage extends StatefulWidget {
+  DebtorsOnDatePage({Key key}) : super(key: key);
+
+  @override
+  _DebtorsOnDatePageState createState() => _DebtorsOnDatePageState();
+}
+
+class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
+    with AutomaticKeepAliveClientMixin<DebtorsOnDatePage> {
+  TextEditingController _textFieldController = TextEditingController();
+
+  Future<String> getDebtorsOnDate() async {
+    print(stockDate);
+    var response = await http.get(
+        Uri.encodeFull(debtorsOnDateURL + "?stock_date=" + stockDate),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      debtorsOnDate = jsonResponse;
+    });
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  void initState() {
+    this.getDebtorsOnDate();
+  }
+
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    Scaffold.of(context).showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
+  _showComplementaryStockDialog(BuildContext context, int position) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Update complementary'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: InputDecoration(hintText: "Complementary stock"),
+              keyboardType: TextInputType.number,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Update'),
+                onPressed: () {
+                  setState(() {});
+
+                  //_updateSettings();
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Scaffold(
+      floatingActionButton: Visibility(
+        visible: !stockCardAvailable,
+        child: FloatingActionButton(
+          onPressed: null,
+          tooltip: 'Add debtor',
+          child: new Icon(Icons.add),
+        ),
+      ),
+      body: ListView.builder(
+          itemCount: debtorsOnDate.length,
+          itemBuilder: (BuildContext context, i) {
+            return Card(
+              child: ListTile(
+                title: Text(debtorsOnDate[i]["name"]),
+                subtitle: Text(
+                    'Amount owed: ${debtorsOnDate[i]["amount_owed"]} | Amount paid: ${debtorsOnDate[i]["amount_paid"]} | Balance: ${debtorsOnDate[i]["balance_due"]} | Phone #: ${debtorsOnDate[i]["phone_number"]} | Date: ${debtorsOnDate[i]["date"]}'),
+                isThreeLine: true,
+              ),
+            );
+          }),
+    );
+  }
+}
+
 //********************************************************************************************************************************
 
 class NewPricePage extends StatefulWidget {
