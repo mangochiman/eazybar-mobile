@@ -1231,6 +1231,19 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
           showMessage('${value.name} was added to debtors list', Colors.blue);
           form.reset();
           Navigator.of(context).pop();
+          setState(() {
+            debtorsOnDate.add({
+              "name": value.name,
+              "amount_owed": value.amountOwed,
+              "phone_number": value.phoneNumber,
+              "amount_paid": "MK 0.00",
+              "balance_due": value.amountOwed,
+              "date": value.stockDate
+            });
+          });
+          _nameFieldController.text = "";
+          _amountFieldController.text = "";
+          _phoneNumberFieldController.text = "";
         }
       });
     }
@@ -1280,9 +1293,9 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
                           TextFormField(
                             controller: _nameFieldController,
                             decoration:
-                            InputDecoration(hintText: "Debtor's Name"),
+                                InputDecoration(hintText: "Debtor's Name"),
                             validator: (val) =>
-                            val.isEmpty ? 'Name is required' : null,
+                                val.isEmpty ? 'Name is required' : null,
                             onSaved: (val) => debtor.name = val,
                           ),
                           TextFormField(
@@ -1290,15 +1303,16 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
                               decoration: InputDecoration(hintText: "Amount"),
                               keyboardType: TextInputType.number,
                               validator: (val) =>
-                              val.isEmpty ? 'Amount is required' : null,
+                                  val.isEmpty ? 'Amount is required' : null,
                               onSaved: (val) => debtor.amountOwed = val),
                           TextFormField(
                               controller: _phoneNumberFieldController,
                               decoration:
-                              InputDecoration(hintText: "Phone number"),
+                                  InputDecoration(hintText: "Phone number"),
                               keyboardType: TextInputType.phone,
-                              validator: (val) =>
-                              val.isEmpty ? 'Phone number is required' : null,
+                              validator: (val) => val.isEmpty
+                                  ? 'Phone number is required'
+                                  : null,
                               onSaved: (val) => debtor.phoneNumber = val)
                         ],
                       ))),
@@ -1571,6 +1585,7 @@ class DebtorService {
       debtor.name = map['name'];
       debtor.amountOwed = map['amount_owed'];
       debtor.stockDate = map['date'];
+      debtor.phoneNumber = map['phone_number'];
       debtor.description = map['description'];
     }
     return debtor;
