@@ -4,7 +4,7 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.12.69:2000";
+const String URL = "http://192.168.43.102:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -30,6 +30,7 @@ String nonStandardProductsDataURL = URL + '/api/v1/non_standard_products_data';
 String debtorsOnDateURL = URL + '/api/v1/debtors_on_date';
 
 String addStockURL = URL + '/api/v1/add_stock';
+String addDebtorsURL = URL + '/api/v1/create_debtors';
 
 void main() => runApp(MyApp());
 
@@ -1211,6 +1212,28 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
   TextEditingController _nameFieldController = TextEditingController();
   TextEditingController _amountFieldController = TextEditingController();
   TextEditingController _phoneNumberFieldController = TextEditingController();
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  Debtor debtor = new Debtor();
+
+  void _submitForm() {
+    final FormState form = _formKey.currentState;
+    if (!form.validate()) {
+      showMessage('Form is not valid!  Please review and correct.');
+    } else {
+      form.save(); //This invokes each onSaved event
+
+      var debtorService = new DebtorService();
+      debtorService.createDebtor(debtor).then((value) {
+        if (value.errors != null && value.errors.length > 0) {
+          showMessage('Errors:\n ${value.errors.join('\n')}', Colors.red);
+        } else {
+          showMessage('${value.name} was successfully created', Colors.blue);
+          form.reset();
+          //_controller.text = '';
+        }
+      });
+    }
+  }
 
   Future<String> getDebtorsOnDate() async {
     print(stockDate);
@@ -1242,30 +1265,42 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
         builder: (context) {
           return AlertDialog(
             title: Text('New debtor'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                TextField(
-                  controller: _nameFieldController,
-                  decoration: InputDecoration(
-                      hintText: "Debtor's Name"
-                  ),
-                ),
-                TextField(
-                  controller: _amountFieldController,
-                  decoration: InputDecoration(
-                      hintText: "Amount"
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: _phoneNumberFieldController,
-                  decoration: InputDecoration(
-                      hintText: "Phone number"
-                  ),
-                  keyboardType: TextInputType.phone,
-                )
-              ],
+            content: SingleChildScrollView(
+              child: SafeArea(
+                  minimum: const EdgeInsets.all(16.0),
+                  bottom: false,
+                  top: false,
+                  child: Form(
+                      key: _formKey,
+                      autovalidate: true,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          TextFormField(
+                            controller: _nameFieldController,
+                            decoration:
+                            InputDecoration(hintText: "Debtor's Name"),
+                            validator: (val) =>
+                            val.isEmpty ? 'Name is required' : null,
+                            onSaved: (val) => debtor.name = val,
+                          ),
+                          TextFormField(
+                              controller: _amountFieldController,
+                              decoration: InputDecoration(hintText: "Amount"),
+                              keyboardType: TextInputType.number,
+                              validator: (val) =>
+                              val.isEmpty ? 'Amount is required' : null,
+                              onSaved: (val) => debtor.amountOwed = val),
+                          TextFormField(
+                              controller: _phoneNumberFieldController,
+                              decoration:
+                              InputDecoration(hintText: "Phone number"),
+                              keyboardType: TextInputType.phone,
+                              validator: (val) =>
+                              val.isEmpty ? 'Phone number is required' : null,
+                              onSaved: (val) => debtor.phoneNumber = val)
+                        ],
+                      ))),
             ),
             actions: <Widget>[
               new FlatButton(
@@ -1276,7 +1311,9 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
               ),
               new FlatButton(
                 child: new Text('SUBMIT'),
-                onPressed: () {},
+                onPressed: () {
+                  _submitForm();
+                },
               )
             ],
           );
@@ -1297,7 +1334,7 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
         ),
       ),
       body: Container(
-          height: 300.0, // Change as per your requirement
+          height: 500.0, // Change as per your requirement
 
           child: ListView.builder(
               shrinkWrap: true,
@@ -1500,6 +1537,53 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
             );
           }),
     );
+  }
+}
+
+class Debtor {
+  String name;
+  String amountOwed;
+  String stockDate;
+  String phoneNumber;
+  String description;
+  var errors = [];
+}
+
+class DebtorService {
+  static final _headers = {'Content-Type': 'application/json'};
+
+  Future<Debtor> createDebtor(Debtor debtor) async {
+    String json = _toJson(debtor);
+    final response =
+        await http.post(addStockURL, headers: _headers, body: json);
+    var serverResponse = _fromJson(response.body);
+
+    return serverResponse;
+  }
+
+  Debtor _fromJson(String json) {
+    Map<String, dynamic> map = jsonDecode(json);
+    var debtor = new Debtor();
+    if (map['errors'] != null && map["errors"].length > 0) {
+      debtor.errors = map['errors'];
+    } else {
+      debtor.name = map['name'];
+      debtor.amountOwed = map['amount_owed'];
+      debtor.stockDate = map['stock_date'];
+      debtor.description = map['description'];
+    }
+    return debtor;
+  }
+
+  String _toJson(Debtor debtor) {
+    var mapData = new Map();
+    mapData["name"] = debtor.name;
+    mapData["amountOwed"] = debtor.amountOwed;
+    mapData["stockDate"] = debtor.stockDate;
+    mapData["description"] = debtor.description;
+
+    String json = jsonEncode(mapData);
+    return json;
   }
 }
 
@@ -2354,46 +2438,6 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
           child: Icon(Icons.edit),
           backgroundColor: Colors.blue,
         ));
-  }
-}
-
-class Debtor {
-  var name;
-  var amountOwed;
-  var phoneNumber;
-  var date;
-  var amountPaid;
-  var balanceDue;
-
-  Debtor(
-      {this.name,
-      this.amountOwed,
-      this.phoneNumber,
-      this.date,
-      this.amountPaid,
-      this.balanceDue});
-
-  factory Debtor.fromJson(Map<String, dynamic> json) {
-    return Debtor(
-      name: json['name'],
-      amountOwed: json['amount_owed'],
-      phoneNumber: json['phone_number'],
-      date: json['date'],
-      amountPaid: json['amount_paid'],
-      balanceDue: json['balance_due'],
-    );
-  }
-
-  Map toMap() {
-    var map = Map<String, dynamic>();
-    map["name"] = name;
-    map["amount_owed"] = amountOwed;
-    map["phone_number"] = phoneNumber;
-    map["date"] = date;
-    map["amount_paid"] = amountPaid;
-    map["balance_due"] = balanceDue;
-
-    return map;
   }
 }
 
