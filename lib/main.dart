@@ -1215,7 +1215,7 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   Debtor debtor = new Debtor();
 
-  void _submitForm() {
+  void _submitForm(BuildContext context) {
     final FormState form = _formKey.currentState;
     if (!form.validate()) {
       showMessage('Form is not valid!  Please review and correct.');
@@ -1223,13 +1223,14 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
       form.save(); //This invokes each onSaved event
 
       var debtorService = new DebtorService();
+      debtor.stockDate = stockDate;
       debtorService.createDebtor(debtor).then((value) {
         if (value.errors != null && value.errors.length > 0) {
           showMessage('Errors:\n ${value.errors.join('\n')}', Colors.red);
         } else {
-          showMessage('${value.name} was successfully created', Colors.blue);
+          showMessage('${value.name} was added to debtors list', Colors.blue);
           form.reset();
-          //_controller.text = '';
+          Navigator.of(context).pop();
         }
       });
     }
@@ -1312,7 +1313,7 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
               new FlatButton(
                 child: new Text('SUBMIT'),
                 onPressed: () {
-                  _submitForm();
+                  _submitForm(context);
                 },
               )
             ],
@@ -1555,7 +1556,7 @@ class DebtorService {
   Future<Debtor> createDebtor(Debtor debtor) async {
     String json = _toJson(debtor);
     final response =
-        await http.post(addStockURL, headers: _headers, body: json);
+        await http.post(addDebtorsURL, headers: _headers, body: json);
     var serverResponse = _fromJson(response.body);
 
     return serverResponse;
@@ -1569,7 +1570,7 @@ class DebtorService {
     } else {
       debtor.name = map['name'];
       debtor.amountOwed = map['amount_owed'];
-      debtor.stockDate = map['stock_date'];
+      debtor.stockDate = map['date'];
       debtor.description = map['description'];
     }
     return debtor;
@@ -1578,8 +1579,9 @@ class DebtorService {
   String _toJson(Debtor debtor) {
     var mapData = new Map();
     mapData["name"] = debtor.name;
-    mapData["amountOwed"] = debtor.amountOwed;
-    mapData["stockDate"] = debtor.stockDate;
+    mapData["amount"] = debtor.amountOwed;
+    mapData["phone_number"] = debtor.phoneNumber;
+    mapData["date"] = debtor.stockDate;
     mapData["description"] = debtor.description;
 
     String json = jsonEncode(mapData);
