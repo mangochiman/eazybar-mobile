@@ -165,7 +165,7 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
               StandardItemsPage(),
               NonStandardItemsPage(),
               DebtorsOnDatePage(),
-              Text('Summary')
+              StockSummaryPage()
             ],
           ),
         ),
@@ -1369,6 +1369,79 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
 }
 
 //********************************************************************************************************************************
+
+class StockSummaryPage extends StatefulWidget {
+  @override
+  _StockSummaryPageState createState() => _StockSummaryPageState();
+}
+
+class _StockSummaryPageState extends State<StockSummaryPage> {
+  Map data = {};
+  Future<String> getReports() async {
+    var response = await http.get(
+        Uri.encodeFull(reportsUrl + "?date=" + stockDate),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      data = jsonResponse;
+    });
+  }
+
+  @override
+  void initState() {
+    this.getReports();
+  }
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SizedBox.expand(
+          child: DataTable(columns: [
+        DataColumn(
+          label: Text("Date"),
+          numeric: false,
+          tooltip: "Date",
+        ),
+        DataColumn(
+          label: Text(stockDate),
+          numeric: false,
+          tooltip: "Date",
+        ),
+      ], rows: [
+        DataRow(cells: [
+          DataCell(Text("Complementary")),
+          DataCell(Text(data["complementary_total"]))
+        ]),
+        DataRow(cells: [
+          DataCell(Text("Damages")),
+          DataCell(Text(data["damages_total"]))
+        ]),
+        DataRow(cells: [
+          DataCell(Text("Total sales")),
+          DataCell(Text(data["total_sales"]))
+        ]),
+        DataRow(cells: [
+          DataCell(Text("Debtors")),
+          DataCell(Text(data["debtors"]))
+        ]),
+        DataRow(cells: [
+          DataCell(Text("Expected cash")),
+          DataCell(Text(data["expected_cash"]))
+        ]),
+        DataRow(cells: [
+          DataCell(Text("Collected cash")),
+          DataCell(Text(data["collected_cash"]))
+        ]),
+        DataRow(cells: [
+          DataCell(Text("Shortages")),
+          DataCell(Text(data["shortages"]))
+        ])
+      ])),
+    );
+  }
+}
+
+//*********************************************************
 
 class NewPricePage extends StatefulWidget {
   final String productID;
