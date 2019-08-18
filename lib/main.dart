@@ -1377,6 +1377,7 @@ class StockSummaryPage extends StatefulWidget {
 
 class _StockSummaryPageState extends State<StockSummaryPage> {
   Map data = {};
+
   Future<String> getReports() async {
     var response = await http.get(
         Uri.encodeFull(reportsUrl + "?date=" + stockDate),
@@ -1395,48 +1396,76 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SizedBox.expand(
-          child: DataTable(columns: [
-        DataColumn(
-          label: Text("Date"),
-          numeric: false,
-          tooltip: "Date",
-        ),
-        DataColumn(
-          label: Text(stockDate),
-          numeric: false,
-          tooltip: "Date",
-        ),
-      ], rows: [
-        DataRow(cells: [
-          DataCell(Text("Complementary")),
-          DataCell(Text(data["complementary_total"]))
-        ]),
-        DataRow(cells: [
-          DataCell(Text("Damages")),
-          DataCell(Text(data["damages_total"]))
-        ]),
-        DataRow(cells: [
-          DataCell(Text("Total sales")),
-          DataCell(Text(data["total_sales"]))
-        ]),
-        DataRow(cells: [
-          DataCell(Text("Debtors")),
-          DataCell(Text(data["debtors"]))
-        ]),
-        DataRow(cells: [
-          DataCell(Text("Expected cash")),
-          DataCell(Text(data["expected_cash"]))
-        ]),
-        DataRow(cells: [
-          DataCell(Text("Collected cash")),
-          DataCell(Text(data["collected_cash"]))
-        ]),
-        DataRow(cells: [
-          DataCell(Text("Shortages")),
-          DataCell(Text(data["shortages"]))
-        ])
-      ])),
+      body: Padding(padding: new EdgeInsets.all(10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          DataTable(columns: [
+            DataColumn(
+              label: Text("Date"),
+              numeric: false,
+              tooltip: "Date",
+            ),
+            DataColumn(
+              label: Text(stockDate),
+              numeric: false,
+              tooltip: "Date",
+            ),
+          ], rows: [
+            DataRow(cells: [
+              DataCell(Text("Complementary")),
+              DataCell(Text(''))
+            ]),
+            DataRow(cells: [
+              DataCell(Text("Damages")),
+              DataCell(Text(''))
+            ]),
+            DataRow(cells: [
+              DataCell(Text("Total sales")),
+              DataCell(Text(''))
+            ]),
+            DataRow(cells: [
+              DataCell(Text("Debtors")),
+              DataCell(Text(''))
+            ]),
+            DataRow(cells: [
+              DataCell(Text("Expected cash")),
+              DataCell(Text(''))
+            ]),
+            DataRow(cells: [
+              DataCell(Text("Collected cash")),
+              DataCell(Text(''))
+            ]),
+            DataRow(cells: [
+              DataCell(Text("Shortages")),
+              DataCell(Text(''))
+            ])
+          ]),
+          AnimatedOpacity(
+            opacity: !stockCardAvailable ? 1.0 : 0.0,
+            duration: Duration(milliseconds: 500),
+            child: ButtonTheme.bar(
+              child: new ButtonBar(
+                children: <Widget>[
+                  new FlatButton(
+                    child: const Text('Cashier closure'),
+                    onPressed: () {
+
+                    },
+                  ),
+
+                  new FlatButton(
+                    child: const Text('Update cash collected'),
+                    onPressed: () {
+
+                    },
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),),
     );
   }
 }
