@@ -32,6 +32,7 @@ String debtorsOnDateURL = URL + '/api/v1/debtors_on_date';
 String addStockURL = URL + '/api/v1/add_stock';
 String addDebtorsURL = URL + '/api/v1/create_debtors';
 String productsTotalURL = URL + '/api/v1/products_count';
+String authenticateUserURL = URL + '/api/v1/authenticate';
 
 void main() => runApp(MyApp());
 
@@ -1474,6 +1475,19 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   final GlobalKey<FormState> _authenticationFormKey =
       new GlobalKey<FormState>();
+  static final _headers = {'Content-Type': 'application/json'};
+
+  Future<String> authenticateUser() async {
+    Map userData = {};
+    userData["username"] = _usernameFieldController.text;
+    userData["password"] = _passwordFieldController.text;
+    String json = jsonEncode(userData);
+
+    final response =
+        await http.post(authenticateUserURL, headers: _headers, body: json);
+    var jsonResponse = jsonDecode(response.body);
+    print(jsonResponse);
+  }
 
   Future<String> getSummary() async {
     if (!stockCardAvailable) {
@@ -1636,7 +1650,9 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
               ),
               new FlatButton(
                 child: new Text('Authenticate'),
-                onPressed: () {},
+                onPressed: () {
+                  authenticateUser();
+                },
               )
             ],
           );
