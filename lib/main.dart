@@ -4,7 +4,7 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.43.102:2000";
+const String URL = "http://192.168.12.69:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -54,7 +54,8 @@ class StockCardMainPage extends StatefulWidget {
   _StockCardMainPageState createState() => _StockCardMainPageState();
 }
 
-class _StockCardMainPageState extends State<StockCardMainPage> {
+class _StockCardMainPageState extends State<StockCardMainPage>
+    with TickerProviderStateMixin {
   final TextEditingController _controller = new TextEditingController();
   GlobalKey<_StandardItemsPageState> _keyChild1 = GlobalKey();
 
@@ -143,6 +144,7 @@ class _StockCardMainPageState extends State<StockCardMainPage> {
       key: _keyChild1,
       home: DefaultTabController(
         length: 4,
+        initialIndex: 0,
         child: Scaffold(
           appBar: AppBar(
               bottom: TabBar(tabs: [
@@ -179,6 +181,7 @@ List nonStandardProducts = [];
 bool stockCardAvailable = false;
 List selectedPositions = [];
 List selectedButtons = [];
+Map closedProducts = {};
 
 class StandardItemsPage extends StatefulWidget {
   StandardItemsPage({Key key}) : super(key: key);
@@ -311,7 +314,18 @@ class _StandardItemsPageState extends State<StandardItemsPage>
     Navigator.of(context).pop();
     setState(() {
       standardProducts[i]["closing_stock"] = _textFieldController.text;
+      var productID = standardProducts[i]["product_id"];
+      if (closedProducts[productID] == null) {
+        closedProducts[productID] = {};
+      }
+      closedProducts[productID]["stock"] = _textFieldController.text;
+      closedProducts[productID]["price"] = standardProducts[i]["price"];
+      closedProducts[productID]["product_type"] =
+          standardProducts[i]["product_type"];
+      closedProducts[productID]["current_stock"] =
+          standardProducts[i]["current_stock"];
     });
+
     _textFieldController.text = "";
     updateDifferenceAndTotalSales(i);
   }
@@ -357,6 +371,16 @@ class _StandardItemsPageState extends State<StandardItemsPage>
     Navigator.of(context).pop();
     setState(() {
       standardProducts[i]["damaged_stock"] = _textFieldController.text;
+      var productID = standardProducts[i]["product_id"];
+      if (closedProducts[productID] == null) {
+        closedProducts[productID] = {};
+      }
+      closedProducts[productID]["damage"] = _textFieldController.text;
+      closedProducts[productID]["price"] = standardProducts[i]["price"];
+      closedProducts[productID]["product_type"] =
+          standardProducts[i]["product_type"];
+      closedProducts[productID]["current_stock"] =
+          standardProducts[i]["current_stock"];
     });
 
     _textFieldController.text = "";
@@ -403,6 +427,16 @@ class _StandardItemsPageState extends State<StandardItemsPage>
     Navigator.of(context).pop();
     setState(() {
       standardProducts[i]["complementary_stock"] = _textFieldController.text;
+      var productID = standardProducts[i]["product_id"];
+      if (closedProducts[productID] == null) {
+        closedProducts[productID] = {};
+      }
+      closedProducts[productID]["complementary"] = _textFieldController.text;
+      closedProducts[productID]["price"] = standardProducts[i]["price"];
+      closedProducts[productID]["product_type"] =
+          standardProducts[i]["product_type"];
+      closedProducts[productID]["current_stock"] =
+          standardProducts[i]["current_stock"];
     });
 
     _textFieldController.text = "";
@@ -819,6 +853,16 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
     Navigator.of(context).pop();
     setState(() {
       nonStandardProducts[i]["closing_stock"] = _textFieldController.text;
+      var productID = nonStandardProducts[i]["product_id"];
+      if (closedProducts[productID] == null) {
+        closedProducts[productID] = {};
+      }
+      closedProducts[productID]["stock"] = _textFieldController.text;
+      closedProducts[productID]["price"] = nonStandardProducts[i]["price"];
+      closedProducts[productID]["product_type"] =
+          nonStandardProducts[i]["product_type"];
+      closedProducts[productID]["current_stock"] =
+          nonStandardProducts[i]["current_stock"];
     });
     _textFieldController.text = "";
     updateDifferenceAndTotalSales(i);
@@ -863,6 +907,16 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
     Navigator.of(context).pop();
     setState(() {
       nonStandardProducts[i]["damaged_stock"] = _textFieldController.text;
+      var productID = nonStandardProducts[i]["product_id"];
+      if (closedProducts[productID] == null) {
+        closedProducts[productID] = {};
+      }
+      closedProducts[productID]["damage"] = _textFieldController.text;
+      closedProducts[productID]["price"] = nonStandardProducts[i]["price"];
+      closedProducts[productID]["product_type"] =
+          nonStandardProducts[i]["product_type"];
+      closedProducts[productID]["current_stock"] =
+          nonStandardProducts[i]["current_stock"];
     });
 
     _textFieldController.text = "";
@@ -907,6 +961,16 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
     Navigator.of(context).pop();
     setState(() {
       nonStandardProducts[i]["complementary_stock"] = _textFieldController.text;
+      var productID = nonStandardProducts[i]["product_id"];
+      if (closedProducts[productID] == null) {
+        closedProducts[productID] = {};
+      }
+      closedProducts[productID]["complementary"] = _textFieldController.text;
+      closedProducts[productID]["price"] = nonStandardProducts[i]["price"];
+      closedProducts[productID]["product_type"] =
+          nonStandardProducts[i]["product_type"];
+      closedProducts[productID]["current_stock"] =
+          nonStandardProducts[i]["current_stock"];
     });
 
     _textFieldController.text = "";
@@ -1250,7 +1314,6 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
   }
 
   Future<String> getDebtorsOnDate() async {
-    print(stockDate);
     var response = await http.get(
         Uri.encodeFull(debtorsOnDateURL + "?stock_date=" + stockDate),
         headers: {"Accept": "application/json"});
@@ -1375,97 +1438,327 @@ class StockSummaryPage extends StatefulWidget {
   _StockSummaryPageState createState() => _StockSummaryPageState();
 }
 
+Map summaryData = {};
+
 class _StockSummaryPageState extends State<StockSummaryPage> {
-  Map data = {};
+  TextEditingController _amountFieldController = TextEditingController();
+  TextEditingController _usernameFieldController = TextEditingController();
+  TextEditingController _passwordFieldController = TextEditingController();
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final GlobalKey<FormState> _authenticationFormKey =
+      new GlobalKey<FormState>();
 
-  Future<String> getReports() async {
-    var response = await http.get(
-        Uri.encodeFull(reportsUrl + "?date=" + stockDate),
-        headers: {"Accept": "application/json"});
+  Future<String> getSummary() async {
+    int keys = closedProducts.keys.length;
+    if (!stockCardAvailable) {
+      var response = await http.get(
+          Uri.encodeFull(debtorsOnDateURL + "?stock_date=" + stockDate),
+          headers: {"Accept": "application/json"});
 
-    setState(() {
       var jsonResponse = json.decode(response.body);
-      data = jsonResponse;
-    });
+      double debtorsTotal = 0;
+      for (var i = 0; i <= jsonResponse.length - 1; i++) {
+        String amountOwedString = jsonResponse[i]["amount_owed"];
+        double amountOwed;
+        try {
+          amountOwed = double.parse(amountOwedString);
+        } catch (e) {
+          amountOwed = 0;
+        }
+        debtorsTotal += amountOwed;
+      }
+
+      double totalSales = 0;
+      double complementaryTotal = 0;
+      double damagesTotal = 0;
+
+      final formatCurrency = NumberFormat("#,##0.00", "en_US");
+
+      closedProducts.forEach((productID, values) {
+        int defaultValue = 0;
+        double defaultPrice = 0;
+        int currentStock = 0;
+
+        int closingStock;
+        int damagedStock;
+        int complementaryStock;
+        double price;
+
+        try {
+          closingStock = int.parse(values["stock"]);
+        } catch (e) {
+          closingStock = defaultValue;
+        }
+
+        try {
+          damagedStock = int.parse(values["damage"]);
+        } catch (e) {
+          damagedStock = defaultValue;
+        }
+
+        try {
+          complementaryStock = int.parse(values["complementary"]);
+        } catch (e) {
+          complementaryStock = defaultValue;
+        }
+
+        try {
+          currentStock = int.parse(values["current_stock"]);
+        } catch (e) {
+          currentStock = defaultValue;
+        }
+
+        try {
+          price = double.parse(values["price"]);
+        } catch (e) {
+          price = defaultPrice;
+        }
+
+        var productType = values["product_type"];
+
+        if (productType == "Non Standard") {
+          totalSales += price * closingStock;
+        } else {
+          var difference = currentStock - closingStock;
+          totalSales +=
+              price * (difference - damagedStock - complementaryStock);
+        }
+
+        complementaryTotal += price * complementaryStock;
+        damagesTotal += price * damagedStock;
+      });
+
+      var expectedCash = totalSales - debtorsTotal;
+      setState(() {
+        summaryData["total_sales"] = "MWK ${formatCurrency.format(totalSales)}";
+        summaryData["complementary_total"] =
+            "MWK ${formatCurrency.format(complementaryTotal)}";
+        summaryData["damages_total"] =
+            "MWK ${formatCurrency.format(damagesTotal)}";
+        summaryData["expected_cash"] =
+            "MWK ${formatCurrency.format(expectedCash)}";
+        summaryData["collected_cash"] = "";
+        summaryData["shortages"] = "";
+        summaryData["debtors"] = "MWK ${formatCurrency.format(debtorsTotal)}";
+      });
+    } else {
+      var response = await http.get(
+          Uri.encodeFull(reportsUrl + "?date=" + stockDate),
+          headers: {"Accept": "application/json"});
+
+      setState(() {
+        var jsonResponse = json.decode(response.body);
+        summaryData = jsonResponse;
+      });
+    }
   }
 
   @override
   void initState() {
-    this.getReports();
+    this.getSummary();
+  }
+
+  _showCashierAuthenticationDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Authentication'),
+            content: SingleChildScrollView(
+              child: SafeArea(
+                  minimum: const EdgeInsets.all(16.0),
+                  bottom: false,
+                  top: false,
+                  child: Form(
+                      key: _authenticationFormKey,
+                      autovalidate: true,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          TextFormField(
+                            controller: _usernameFieldController,
+                            decoration: InputDecoration(hintText: "Username"),
+                            keyboardType: TextInputType.number,
+                            validator: (val) =>
+                                val.isEmpty ? 'Username is required' : null,
+                          ),
+                          TextFormField(
+                            controller: _passwordFieldController,
+                            decoration: InputDecoration(hintText: "Password"),
+                            keyboardType: TextInputType.number,
+                            validator: (val) =>
+                                val.isEmpty ? 'Password is required' : null,
+                          )
+                        ],
+                      ))),
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Authenticate'),
+                onPressed: () {},
+              )
+            ],
+          );
+        });
+  }
+
+  _showCashierClosureConfirmDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Cashier closure'),
+            content: SingleChildScrollView(
+              child: SafeArea(
+                  minimum: const EdgeInsets.all(1.0),
+                  bottom: false,
+                  top: false,
+                  child: Text(
+                      "You have not selected all items. Are you sure you want to continue?")),
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('YES AM SURE'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _showCashierAuthenticationDialog(context);
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  _showCashCollectedDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Cash collected'),
+            content: SingleChildScrollView(
+              child: SafeArea(
+                  minimum: const EdgeInsets.all(16.0),
+                  bottom: false,
+                  top: false,
+                  child: Form(
+                      key: _formKey,
+                      autovalidate: true,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          TextFormField(
+                            controller: _amountFieldController,
+                            decoration:
+                                InputDecoration(hintText: "Cash collected"),
+                            keyboardType: TextInputType.number,
+                            validator: (val) => val.isEmpty
+                                ? 'Cash collected is required'
+                                : null,
+                          ),
+                        ],
+                      ))),
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('OKAY'),
+                onPressed: () {},
+              )
+            ],
+          );
+        });
   }
 
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(padding: new EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          DataTable(columns: [
-            DataColumn(
-              label: Text("Date"),
-              numeric: false,
-              tooltip: "Date",
-            ),
-            DataColumn(
-              label: Text(stockDate),
-              numeric: false,
-              tooltip: "Date",
-            ),
-          ], rows: [
-            DataRow(cells: [
-              DataCell(Text("Complementary")),
-              DataCell(Text(''))
-            ]),
-            DataRow(cells: [
-              DataCell(Text("Damages")),
-              DataCell(Text(''))
-            ]),
-            DataRow(cells: [
-              DataCell(Text("Total sales")),
-              DataCell(Text(''))
-            ]),
-            DataRow(cells: [
-              DataCell(Text("Debtors")),
-              DataCell(Text(''))
-            ]),
-            DataRow(cells: [
-              DataCell(Text("Expected cash")),
-              DataCell(Text(''))
-            ]),
-            DataRow(cells: [
-              DataCell(Text("Collected cash")),
-              DataCell(Text(''))
-            ]),
-            DataRow(cells: [
-              DataCell(Text("Shortages")),
-              DataCell(Text(''))
-            ])
-          ]),
-          AnimatedOpacity(
-            opacity: !stockCardAvailable ? 1.0 : 0.0,
-            duration: Duration(milliseconds: 500),
-            child: ButtonTheme.bar(
-              child: new ButtonBar(
-                children: <Widget>[
-                  new FlatButton(
-                    child: const Text('Cashier closure'),
-                    onPressed: () {
-
-                    },
-                  ),
-
-                  new FlatButton(
-                    child: const Text('Update cash collected'),
-                    onPressed: () {
-
-                    },
-                  ),
-                ],
+      body: Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            DataTable(columns: [
+              DataColumn(
+                label: Text("Date"),
+                numeric: false,
+                tooltip: "Date",
               ),
-            ),
-          )
-        ],
-      ),),
+              DataColumn(
+                label: Text(stockDate),
+                numeric: false,
+                tooltip: "Date",
+              ),
+            ], rows: [
+              DataRow(cells: [
+                DataCell(Text("Complementary")),
+                DataCell(Text(summaryData["complementary_total"] ?? ""))
+              ]),
+              DataRow(cells: [
+                DataCell(Text("Damages")),
+                DataCell(Text(summaryData["damages_total"] ?? ""))
+              ]),
+              DataRow(cells: [
+                DataCell(Text("Total sales")),
+                DataCell(Text(summaryData["total_sales"] ?? ""))
+              ]),
+              DataRow(cells: [
+                DataCell(Text("Debtors")),
+                DataCell(Text(summaryData["debtors"] ?? ""))
+              ]),
+              DataRow(cells: [
+                DataCell(Text("Expected cash")),
+                DataCell(Text(summaryData["expected_cash"] ?? ""))
+              ]),
+              DataRow(cells: [
+                DataCell(Text("Collected cash")),
+                DataCell(Text(summaryData["collected_cash"] ?? ""))
+              ]),
+              DataRow(cells: [
+                DataCell(Text("Shortages")),
+                DataCell(Text(summaryData["shortages"] ?? ""))
+              ])
+            ]),
+            AnimatedOpacity(
+              opacity: !stockCardAvailable ? 1.0 : 0.0,
+              duration: Duration(milliseconds: 500),
+              child: ButtonTheme.bar(
+                child: new ButtonBar(
+                  children: <Widget>[
+                    new FlatButton(
+                      child: const Text('Cashier closure'),
+                      onPressed: () {
+                        _showCashierClosureConfirmDialog(context);
+                      },
+                    ),
+                    new FlatButton(
+                      child: const Text('Update cash collected'),
+                      onPressed: () {
+                        _showCashCollectedDialog(context);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 }
