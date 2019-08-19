@@ -31,6 +31,7 @@ String debtorsOnDateURL = URL + '/api/v1/debtors_on_date';
 
 String addStockURL = URL + '/api/v1/add_stock';
 String addDebtorsURL = URL + '/api/v1/create_debtors';
+String productsTotalURL = URL + '/api/v1/products_count';
 
 void main() => runApp(MyApp());
 
@@ -182,6 +183,7 @@ bool stockCardAvailable = false;
 List selectedPositions = [];
 List selectedButtons = [];
 Map closedProducts = {};
+int productsCount = 0;
 
 class StandardItemsPage extends StatefulWidget {
   StandardItemsPage({Key key}) : super(key: key);
@@ -208,11 +210,22 @@ class _StandardItemsPageState extends State<StandardItemsPage>
     });
   }
 
+  Future<String> getProductsCount() async {
+    var response = await http.get(Uri.encodeFull(productsTotalURL),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      productsCount = jsonResponse["count"];
+    });
+  }
+
   @override
   bool get wantKeepAlive => true;
 
   void initState() {
     this.getStandardItems();
+    this.getProductsCount();
   }
 
   ListView getListView() => new ListView.builder(
@@ -758,11 +771,22 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
     });
   }
 
+  Future<String> getProductsCount() async {
+    var response = await http.get(Uri.encodeFull(productsTotalURL),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      var jsonResponse = json.decode(response.body);
+      productsCount = jsonResponse["count"];
+    });
+  }
+
   @override
   bool get wantKeepAlive => true;
 
   void initState() {
     this.getNonStandardItems();
+    this.getProductsCount();
   }
 
   ListView getListView() => new ListView.builder(
@@ -1452,7 +1476,6 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
       new GlobalKey<FormState>();
 
   Future<String> getSummary() async {
-    int keys = closedProducts.keys.length;
     if (!stockCardAvailable) {
       var response = await http.get(
           Uri.encodeFull(debtorsOnDateURL + "?stock_date=" + stockDate),
@@ -1621,36 +1644,41 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
   }
 
   _showCashierClosureConfirmDialog(BuildContext context) async {
-    return showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Cashier closure'),
-            content: SingleChildScrollView(
-              child: SafeArea(
-                  minimum: const EdgeInsets.all(1.0),
-                  bottom: false,
-                  top: false,
-                  child: Text(
-                      "You have not selected all items. Are you sure you want to continue?")),
-            ),
-            actions: <Widget>[
-              new FlatButton(
-                child: new Text('CANCEL'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+    int keys = closedProducts.keys.length;
+    if (keys < productsCount) {
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Cashier closure'),
+              content: SingleChildScrollView(
+                child: SafeArea(
+                    minimum: const EdgeInsets.all(1.0),
+                    bottom: false,
+                    top: false,
+                    child: Text(
+                        "You have not selected all items. Are you sure you want to continue?")),
               ),
-              new FlatButton(
-                child: new Text('YES AM SURE'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _showCashierAuthenticationDialog(context);
-                },
-              )
-            ],
-          );
-        });
+              actions: <Widget>[
+                new FlatButton(
+                  child: new Text('CANCEL'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                new FlatButton(
+                  child: new Text('YES AM SURE'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showCashierAuthenticationDialog(context);
+                  },
+                )
+              ],
+            );
+          });
+    } else {
+      _showCashierAuthenticationDialog(context);
+    }
   }
 
   _showCashCollectedDialog(BuildContext context) async {
