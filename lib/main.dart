@@ -1439,6 +1439,9 @@ class StockSummaryPage extends StatefulWidget {
 }
 
 Map summaryData = {};
+double expectedCashUnformatted;
+double shortages = 0;
+double cashCollected = 0;
 
 class _StockSummaryPageState extends State<StockSummaryPage> {
   TextEditingController _amountFieldController = TextEditingController();
@@ -1529,7 +1532,9 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
       });
 
       var expectedCash = totalSales - debtorsTotal;
+
       setState(() {
+        expectedCashUnformatted = expectedCash;
         summaryData["total_sales"] = "MWK ${formatCurrency.format(totalSales)}";
         summaryData["complementary_total"] =
             "MWK ${formatCurrency.format(complementaryTotal)}";
@@ -1537,8 +1542,10 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
             "MWK ${formatCurrency.format(damagesTotal)}";
         summaryData["expected_cash"] =
             "MWK ${formatCurrency.format(expectedCash)}";
-        summaryData["collected_cash"] = "";
-        summaryData["shortages"] = "";
+        summaryData["collected_cash"] =
+            "MWK ${formatCurrency.format(cashCollected)}";
+        summaryData["shortages"] = "MWK ${formatCurrency.format(shortages)}";
+
         summaryData["debtors"] = "MWK ${formatCurrency.format(debtorsTotal)}";
       });
     } else {
@@ -1551,6 +1558,11 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
         summaryData = jsonResponse;
       });
     }
+  }
+
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    Scaffold.of(context).showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
   }
 
   @override
@@ -1679,7 +1691,29 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
               ),
               new FlatButton(
                 child: new Text('OKAY'),
-                onPressed: () {},
+                onPressed: () {
+                  final formatCurrency = NumberFormat("#,##0.00", "en_US");
+                  final FormState form = _formKey.currentState;
+                  if (!form.validate()) {
+                    showMessage('Input not valid!  Please review and correct.');
+                  } else {
+                    setState(() {
+                      try {
+                        cashCollected =
+                            double.parse(_amountFieldController.text);
+                      } catch (e) {
+                        cashCollected = 0;
+                      }
+
+                      shortages = expectedCashUnformatted - cashCollected;
+                      summaryData["collected_cash"] =
+                          "MWK ${formatCurrency.format(cashCollected)}";
+                      summaryData["shortages"] =
+                          "MWK ${formatCurrency.format(shortages)}";
+                    });
+                    Navigator.of(context).pop();
+                  }
+                },
               )
             ],
           );
