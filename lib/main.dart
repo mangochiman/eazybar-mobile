@@ -33,6 +33,7 @@ String addStockURL = URL + '/api/v1/add_stock';
 String addDebtorsURL = URL + '/api/v1/create_debtors';
 String productsTotalURL = URL + '/api/v1/products_count';
 String authenticateUserURL = URL + '/api/v1/authenticate';
+String createStockURL = URL + '/api/v1/create_stock';
 
 void main() => runApp(MyApp());
 
@@ -1486,7 +1487,54 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
     final response =
         await http.post(authenticateUserURL, headers: _headers, body: json);
     var jsonResponse = jsonDecode(response.body);
-    print(jsonResponse);
+    submitForm();
+    //print(jsonResponse);
+  }
+
+  Future<String> submitForm() async {
+    Map stock = {};
+    stock["stock_date"] = stockDate;
+    stock["actual_cash"] = cashCollected;
+    stock["stock_date"] = stockDate;
+    stock["user_id"] = "1";
+    stock["stock_details"] = {};
+
+    closedProducts.forEach((productID, values) {
+      var closedStock = values["stock"];
+      var damagedStock = values["damage"];
+      var complementaryStock = values["complementary"];
+      var shotsSold = values["shots"];
+
+      if (closedStock == null) {
+        closedStock = "";
+      }
+
+      if (damagedStock == null) {
+        damagedStock = "";
+      }
+
+      if (complementaryStock == null) {
+        complementaryStock = "";
+      }
+
+      if (shotsSold == null) {
+        shotsSold = "";
+      }
+      
+      stock["stock_details"][productID.toString()] = {
+        'stock': closedStock,
+        'damage': damagedStock,
+        'complementary': complementaryStock,
+        'shots': shotsSold
+      };
+    });
+
+    final response = await http.post(createStockURL,
+        headers: _headers, body: json.encode(stock));
+
+    var jsonResponse = jsonDecode(response.body);
+
+    print(stock);
   }
 
   Future<String> getSummary() async {
