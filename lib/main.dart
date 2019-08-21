@@ -1487,8 +1487,12 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
     final response =
         await http.post(authenticateUserURL, headers: _headers, body: json);
     var jsonResponse = jsonDecode(response.body);
-    submitForm();
-    //print(jsonResponse);
+
+    if (jsonResponse["status"] == "success"){
+      submitForm();
+    } else {
+      showMessage('Wrong username/password combination');
+    }
   }
 
   Future<String> submitForm() async {
@@ -1520,7 +1524,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
       if (shotsSold == null) {
         shotsSold = "";
       }
-      
+
       stock["stock_details"][productID.toString()] = {
         'stock': closedStock,
         'damage': damagedStock,
@@ -1534,7 +1538,8 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
 
     var jsonResponse = jsonDecode(response.body);
 
-    print(stock);
+    _usernameFieldController.text = "";
+    _passwordFieldController.text = "";
   }
 
   Future<String> getSummary() async {
@@ -1869,6 +1874,11 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                     new FlatButton(
                       child: const Text('Cashier closure'),
                       onPressed: () {
+
+                        if (cashCollected == 0){
+                          return showMessage('Update cash collected first to continue');
+                        }
+
                         _showCashierClosureConfirmDialog(context);
                       },
                     ),
