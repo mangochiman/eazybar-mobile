@@ -1489,9 +1489,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
       standardProducts = [];
       var standardItemJsonResponse = json.decode(standardItemsResponse.body);
       standardProducts = standardItemJsonResponse;
-      if (standardProducts.length > 0) {
-        stockCardAvailable = standardProducts[0]["stock_card_available"];
-      }
+      stockCardAvailable = true;
     });
 
     var nonStandardItemsResponseResponse = await http.get(
@@ -1503,10 +1501,12 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
       var nonStandardItemsResponseResponseJsonResponse =
           json.decode(nonStandardItemsResponseResponse.body);
       nonStandardProducts = nonStandardItemsResponseResponseJsonResponse;
-      if (nonStandardProducts.length > 0) {
-        stockCardAvailable = nonStandardProducts[0]["stock_card_available"];
-      }
     });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MyHomePage()),
+    );
   }
 
   Future<String> authenticateUser(BuildContext context) async {
