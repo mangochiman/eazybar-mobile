@@ -756,8 +756,6 @@ class NonStandardItemsPage extends StatefulWidget {
 class _NonStandardItemsPageState extends State<NonStandardItemsPage>
     with AutomaticKeepAliveClientMixin<NonStandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
-  List selectedPositions = [];
-  List selectedButtons = [];
 
   Future<String> getNonStandardItems() async {
     var response = await http.get(
@@ -1478,7 +1476,40 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
       new GlobalKey<FormState>();
   static final _headers = {'Content-Type': 'application/json'};
 
-  Future<String> authenticateUser() async {
+  Future<String> resetVariables() async {
+    selectedPositions = [];
+    selectedButtons = [];
+    closedProducts = {};
+
+    var standardItemsResponse = await http.get(
+        Uri.encodeFull(standardProductsDataURL + "?date=" + stockDate),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      standardProducts = [];
+      var standardItemJsonResponse = json.decode(standardItemsResponse.body);
+      standardProducts = standardItemJsonResponse;
+      if (standardProducts.length > 0) {
+        stockCardAvailable = standardProducts[0]["stock_card_available"];
+      }
+    });
+
+    var nonStandardItemsResponseResponse = await http.get(
+        Uri.encodeFull(nonStandardProductsDataURL + "?date=" + stockDate),
+        headers: {"Accept": "application/json"});
+
+    setState(() {
+      nonStandardProducts = [];
+      var nonStandardItemsResponseResponseJsonResponse =
+          json.decode(nonStandardItemsResponseResponse.body);
+      nonStandardProducts = nonStandardItemsResponseResponseJsonResponse;
+      if (nonStandardProducts.length > 0) {
+        stockCardAvailable = nonStandardProducts[0]["stock_card_available"];
+      }
+    });
+  }
+
+  Future<String> authenticateUser(BuildContext context) async {
     Map userData = {};
     userData["username"] = _usernameFieldController.text;
     userData["password"] = _passwordFieldController.text;
@@ -1488,14 +1519,14 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
         await http.post(authenticateUserURL, headers: _headers, body: json);
     var jsonResponse = jsonDecode(response.body);
 
-    if (jsonResponse["status"] == "success"){
-      submitForm();
+    if (jsonResponse["status"] == "success") {
+      submitForm(context);
     } else {
       showMessage('Wrong username/password combination');
     }
   }
 
-  Future<String> submitForm() async {
+  Future<String> submitForm(BuildContext context) async {
     Map stock = {};
     stock["stock_date"] = stockDate;
     stock["actual_cash"] = cashCollected;
@@ -1538,8 +1569,18 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
 
     var jsonResponse = jsonDecode(response.body);
 
-    _usernameFieldController.text = "";
-    _passwordFieldController.text = "";
+    if (jsonResponse["status"] == "success") {
+      _usernameFieldController.text = "";
+      _passwordFieldController.text = "";
+      setState(() {
+        stockCardAvailable = true;
+        showMessage('Success', Colors.blue);
+      });
+      Navigator.of(context).pop();
+      resetVariables();
+    } else {
+      showMessage('Oops something went wrong');
+    }
   }
 
   Future<String> getSummary() async {
@@ -1704,7 +1745,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
               new FlatButton(
                 child: new Text('Authenticate'),
                 onPressed: () {
-                  authenticateUser();
+                  authenticateUser(context);
                 },
               )
             ],
@@ -1874,9 +1915,9 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                     new FlatButton(
                       child: const Text('Cashier closure'),
                       onPressed: () {
-
-                        if (cashCollected == 0){
-                          return showMessage('Update cash collected first to continue');
+                        if (cashCollected == 0) {
+                          return showMessage(
+                              'Update cash collected first to continue');
                         }
 
                         _showCashierClosureConfirmDialog(context);
