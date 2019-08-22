@@ -610,14 +610,15 @@ class _StandardItemsPageState extends State<StandardItemsPage>
                 width: MediaQuery.of(context).size.width,
                 child: DataTable(
                   dataRowHeight: 16,
+                  headingRowHeight: 0,
                   columns: [
                     DataColumn(
-                      label: Text("Key"),
+                      label: Text(""),
                       numeric: false,
                       tooltip: "",
                     ),
                     DataColumn(
-                      label: Text('Value'),
+                      label: Text(''),
                       numeric: false,
                       tooltip: "",
                     ),
@@ -697,7 +698,6 @@ class _StandardItemsPageState extends State<StandardItemsPage>
                       new FlatButton(
                         child: const Text('Add'),
                         onPressed: () {
-                          print(standardProducts[i]);
                           _showAddStockDialog(context, i);
                         },
                       ),
@@ -1153,14 +1153,15 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
                 width: MediaQuery.of(context).size.width,
                 child: DataTable(
                   dataRowHeight: 16,
+                  headingRowHeight: 0,
                   columns: [
                     DataColumn(
-                      label: Text("Key"),
+                      label: Text(""),
                       numeric: false,
                       tooltip: "",
                     ),
                     DataColumn(
-                      label: Text('Value'),
+                      label: Text(''),
                       numeric: false,
                       tooltip: "",
                     ),
@@ -1236,7 +1237,6 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
                       new FlatButton(
                         child: const Text('Add'),
                         onPressed: () {
-                          print(nonStandardProducts[i]);
                           _showAddStockDialog(context, i);
                         },
                       ),
@@ -2097,7 +2097,6 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
     setState(() {
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
-      print(jsonResponse);
     });
   }
 
@@ -2602,7 +2601,6 @@ class _PricingMainPageState extends State<PricingMainPage> {
   }
 
   void showMenuSelection(String value) {
-    //print(value);
     List array = value.split("|");
     var productID = array[1];
     var productName = array[2];
@@ -2676,7 +2674,6 @@ class _ProductsMainPageState extends State<ProductsMainPage> {
     setState(() {
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
-      print(jsonResponse);
     });
   }
 
@@ -2782,10 +2779,7 @@ class _ReportsMainPageState extends State<ReportsMainPage> {
   Future<String> getReports() async {
     try {
       date = DateFormat("yyyy-MM-dd").format(DateTime.parse(date));
-      print(date);
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
 
     var response = await http.get(Uri.encodeFull(reportsUrl + "?date=" + date),
         headers: {"Accept": "application/json"});
@@ -2816,9 +2810,7 @@ class _ReportsMainPageState extends State<ReportsMainPage> {
       try {
         datePickerFormat =
             DateFormat("MM/dd/yyyy").format(DateTime.parse(date));
-      } catch (e) {
-        print(e);
-      }
+      } catch (e) {}
       resetVariables();
       getReports();
     });
@@ -2848,9 +2840,7 @@ class _ReportsMainPageState extends State<ReportsMainPage> {
     resetVariables();
     try {
       datePickerFormat = DateFormat("MM/dd/yyyy").format(DateTime.parse(date));
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
     this.getReports();
   }
 
