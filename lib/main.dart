@@ -4194,9 +4194,26 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginState extends State<LoginPage> {
+  static final _headers = {'Content-Type': 'application/json'};
   TextEditingController _emailFieldController = TextEditingController();
   TextEditingController _usernameFieldController = TextEditingController();
   TextEditingController _passwordFieldController = TextEditingController();
+
+  Future<String> authenticateUser() async {
+    Map userData = {};
+    userData["username"] = _usernameFieldController.text;
+    userData["password"] = _passwordFieldController.text;
+    String json = jsonEncode(userData);
+
+    final response =
+        await http.post(authenticateUserURL, headers: _headers, body: json);
+    var jsonResponse = jsonDecode(response.body);
+
+    if (jsonResponse["status"] == "success") {
+    } else {
+      showMessage('Wrong username/password combination');
+    }
+  }
 
   _showResetPasswordDialog(BuildContext context) async {
     return showDialog(
@@ -4218,9 +4235,7 @@ class LoginState extends State<LoginPage> {
               ),
               new FlatButton(
                 child: new Text('Reset password'),
-                onPressed: () {
-
-                },
+                onPressed: () {},
               )
             ],
           );
@@ -4231,9 +4246,8 @@ class LoginState extends State<LoginPage> {
     Scaffold.of(context).showSnackBar(
         new SnackBar(backgroundColor: color, content: new Text(message)));
   }
-  
-  @override
 
+  @override
   Widget build(BuildContext context) {
     final logo = Hero(
       tag: 'hero',
@@ -4276,7 +4290,9 @@ class LoginState extends State<LoginPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
         ),
-        onPressed: () {},
+        onPressed: () {
+          authenticateUser();
+        },
         padding: EdgeInsets.all(12),
         color: Colors.blue,
         child: Text('Log In', style: TextStyle(color: Colors.white)),
@@ -4323,15 +4339,12 @@ class LoginState extends State<LoginPage> {
                 ),
               ),
             ),
-
-
             SizedBox(height: 12.0),
             email,
             SizedBox(height: 8.0),
             password,
             SizedBox(height: 24.0),
             loginButton,
-
             new Container(
               width: MediaQuery.of(context).size.width,
               margin: const EdgeInsets.only(left: 40.0, right: 40.0, top: 10.0),
@@ -4343,7 +4356,7 @@ class LoginState extends State<LoginPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 20.0, horizontal: 20.0),
                       color: Colors.transparent,
-                      onPressed: (){
+                      onPressed: () {
                         _showResetPasswordDialog(context);
                       },
                       child: Text(
@@ -4361,4 +4374,3 @@ class LoginState extends State<LoginPage> {
     );
   }
 }
-
