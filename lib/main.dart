@@ -2146,6 +2146,7 @@ class PriceHistoryPage extends StatefulWidget {
 
 class _PriceHistoryPageState extends State<PriceHistoryPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getPriceHistory() async {
     var response = await http.get(
@@ -2154,6 +2155,7 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
 
     setState(() {
       var jsonResponse = json.decode(response.body);
+      isLoading = false;
       data = jsonResponse;
     });
   }
@@ -2168,18 +2170,36 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
       appBar: AppBar(
         title: Text('Price history of ' + widget.productName),
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title:
-                    Text(data[i]["start_date"] + ' - ' + data[i]["end_date"]),
-                subtitle: Text('Price: ${data[i]["price"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              ListView.builder(
+                  itemCount: data == null ? 0 : data.length,
+                  itemBuilder: (BuildContext context, i) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(data[i]["start_date"] +
+                            ' - ' +
+                            data[i]["end_date"]),
+                        subtitle: Text('Price: ${data[i]["price"]}'),
+                        isThreeLine: true,
+                      ),
+                    );
+                  }),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -2606,6 +2626,7 @@ class PricingMainPage extends StatefulWidget {
 
 class _PricingMainPageState extends State<PricingMainPage> {
   GlobalKey key = new GlobalKey();
+  bool isLoading = true;
 
   List data;
 
@@ -2616,6 +2637,7 @@ class _PricingMainPageState extends State<PricingMainPage> {
     setState(() {
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
+      isLoading = false;
     });
   }
 
@@ -2685,34 +2707,51 @@ class _PricingMainPageState extends State<PricingMainPage> {
       appBar: AppBar(
         title: Text('Pricing'),
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text(data[i]["product_name"]),
-                subtitle: Text(
-                    'Product category: ${data[i]["product_category"]} | Product Price: ${data[i]["product_price"]}'),
-                trailing: PopupMenuButton<String>(
-                    padding: EdgeInsets.zero,
-                    onSelected: showMenuSelection,
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuItem<String>>[
-                          PopupMenuItem<String>(
-                            value:
-                                'new_price|${data[i]["product_id"]}|${data[i]["product_name"]}',
-                            child: const Text('New price'),
-                          ),
-                          PopupMenuItem<String>(
-                            value:
-                                'price_history|${data[i]["product_id"]}|${data[i]["product_name"]}',
-                            child: const Text('Price history'),
-                          ),
-                        ]),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              ListView.builder(
+                  itemCount: data == null ? 0 : data.length,
+                  itemBuilder: (BuildContext context, i) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(data[i]["product_name"]),
+                        subtitle: Text(
+                            'Product category: ${data[i]["product_category"]} | Product Price: ${data[i]["product_price"]}'),
+                        trailing: PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            onSelected: showMenuSelection,
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuItem<String>>[
+                                  PopupMenuItem<String>(
+                                    value:
+                                        'new_price|${data[i]["product_id"]}|${data[i]["product_name"]}',
+                                    child: const Text('New price'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value:
+                                        'price_history|${data[i]["product_id"]}|${data[i]["product_name"]}',
+                                    child: const Text('Price history'),
+                                  ),
+                                ]),
+                        isThreeLine: true,
+                      ),
+                    );
+                  }),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -2724,6 +2763,7 @@ class ProductsMainPage extends StatefulWidget {
 
 class _ProductsMainPageState extends State<ProductsMainPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getProductsList() async {
     var response = await http.get(Uri.encodeFull(productsUrl),
@@ -2731,6 +2771,7 @@ class _ProductsMainPageState extends State<ProductsMainPage> {
 
     setState(() {
       var jsonResponse = json.decode(response.body);
+      isLoading = false;
       data = jsonResponse;
     });
   }
@@ -2756,18 +2797,35 @@ class _ProductsMainPageState extends State<ProductsMainPage> {
           )
         ],
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text(data[i]["product_name"]),
-                subtitle: Text(
-                    'Minimum required: ${data[i]["minimum_required"]} | Current stock: ${data[i]["current_stock"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              ListView.builder(
+                  itemCount: data == null ? 0 : data.length,
+                  itemBuilder: (BuildContext context, i) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(data[i]["product_name"]),
+                        subtitle: Text(
+                            'Minimum required: ${data[i]["minimum_required"]} | Current stock: ${data[i]["current_stock"]}'),
+                        isThreeLine: true,
+                      ),
+                    );
+                  }),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3049,24 +3107,28 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
         appBar: AppBar(
           title: Text('Settings'),
         ),
-        body: SizedBox.expand(
-            child: DataTable(columns: [
-          DataColumn(
-            label: Text("Property"),
-            numeric: false,
-            tooltip: "Property",
-          ),
-          DataColumn(
-            label: Text("value"),
-            numeric: false,
-            tooltip: "Value",
-          ),
-        ], rows: [
-          DataRow(cells: [
-            DataCell(Text("Debt payment period")),
-            DataCell(Text(data["days"] + " days"))
-          ]),
-        ])),
+        body: Container(
+          padding: EdgeInsets.only(top: 10.0),
+          //color: Colors.blueGrey[500],
+          child: SizedBox.expand(
+              child: DataTable(columns: [
+                DataColumn(
+                  label: Text("Property"),
+                  numeric: false,
+                  tooltip: "Property",
+                ),
+                DataColumn(
+                  label: Text("value"),
+                  numeric: false,
+                  tooltip: "Value",
+                ),
+              ], rows: [
+                DataRow(cells: [
+                  DataCell(Text("Debt payment period")),
+                  DataCell(Text(data["days"] + " days"))
+                ]),
+              ])),
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             // Add your onPressed code here!
@@ -3463,6 +3525,7 @@ class UserAccountsPage extends StatefulWidget {
 
 class _UserAccountsPageState extends State<UserAccountsPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getUserAccountList() async {
     var response = await http.get(Uri.encodeFull(userAccountsUrl),
@@ -3470,6 +3533,7 @@ class _UserAccountsPageState extends State<UserAccountsPage> {
 
     setState(() {
       var jsonResponse = json.decode(response.body);
+      isLoading = false;
       data = jsonResponse;
     });
   }
@@ -3484,18 +3548,36 @@ class _UserAccountsPageState extends State<UserAccountsPage> {
       appBar: AppBar(
         title: Text('User accounts'),
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text('${data[i]["first_name"]} ${data[i]["last_name"]}'),
-                subtitle: Text(
-                    'Username: ${data[i]["username"]} | E-mail: ${data[i]["email"]} | Role: ${data[i]["role"]} | Phone # : ${data[i]["phone_number"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              ListView.builder(
+                  itemCount: data == null ? 0 : data.length,
+                  itemBuilder: (BuildContext context, i) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(
+                            '${data[i]["first_name"]} ${data[i]["last_name"]}'),
+                        subtitle: Text(
+                            'Username: ${data[i]["username"]} | E-mail: ${data[i]["email"]} | Role: ${data[i]["role"]} | Phone # : ${data[i]["phone_number"]}'),
+                        isThreeLine: true,
+                      ),
+                    );
+                  }),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
