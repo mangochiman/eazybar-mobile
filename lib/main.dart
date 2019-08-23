@@ -4194,7 +4194,46 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginState extends State<LoginPage> {
+  TextEditingController _emailFieldController = TextEditingController();
+  TextEditingController _usernameFieldController = TextEditingController();
+  TextEditingController _passwordFieldController = TextEditingController();
+
+  _showResetPasswordDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Password reminder'),
+            content: TextField(
+              controller: _emailFieldController,
+              decoration: InputDecoration(hintText: "E-mail"),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('CANCEL'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text('Reset password'),
+                onPressed: () {
+
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    Scaffold.of(context).showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+  
   @override
+
   Widget build(BuildContext context) {
     final logo = Hero(
       tag: 'hero',
@@ -4212,6 +4251,7 @@ class LoginState extends State<LoginPage> {
     final email = TextFormField(
       keyboardType: TextInputType.emailAddress,
       autofocus: false,
+      controller: _usernameFieldController,
       decoration: InputDecoration(
         hintText: 'Username',
         contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
@@ -4221,6 +4261,7 @@ class LoginState extends State<LoginPage> {
 
     final password = TextFormField(
       autofocus: false,
+      controller: _passwordFieldController,
       obscureText: true,
       decoration: InputDecoration(
         hintText: 'Password',
@@ -4302,7 +4343,9 @@ class LoginState extends State<LoginPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 20.0, horizontal: 20.0),
                       color: Colors.transparent,
-                      onPressed: () => {},
+                      onPressed: (){
+                        _showResetPasswordDialog(context);
+                      },
                       child: Text(
                         "Forgot your password?",
                         style: TextStyle(color: Colors.blue.withOpacity(0.5)),
