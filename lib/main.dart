@@ -3112,22 +3112,22 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
           //color: Colors.blueGrey[500],
           child: SizedBox.expand(
               child: DataTable(columns: [
-                DataColumn(
-                  label: Text("Property"),
-                  numeric: false,
-                  tooltip: "Property",
-                ),
-                DataColumn(
-                  label: Text("value"),
-                  numeric: false,
-                  tooltip: "Value",
-                ),
-              ], rows: [
-                DataRow(cells: [
-                  DataCell(Text("Debt payment period")),
-                  DataCell(Text(data["days"] + " days"))
-                ]),
-              ])),
+            DataColumn(
+              label: Text("Property"),
+              numeric: false,
+              tooltip: "Property",
+            ),
+            DataColumn(
+              label: Text("value"),
+              numeric: false,
+              tooltip: "Value",
+            ),
+          ], rows: [
+            DataRow(cells: [
+              DataCell(Text("Debt payment period")),
+              DataCell(Text(data["days"] + " days"))
+            ]),
+          ])),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
@@ -4174,6 +4174,10 @@ class _MyHomePageState extends State<MyHomePage> {
               title: Text('Logout'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
               },
             ),
           ],
@@ -4182,3 +4186,136 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+// LOGIN STUFF
+
+class LoginPage extends StatefulWidget {
+  createState() => LoginState();
+}
+
+class LoginState extends State<LoginPage> {
+  @override
+  Widget build(BuildContext context) {
+    final logo = Hero(
+      tag: 'hero',
+      child: CircleAvatar(
+        backgroundColor: Colors.transparent,
+        radius: 48.0,
+        child: Icon(
+          Icons.lock,
+          color: Colors.blue,
+          size: 50.0,
+        ),
+      ),
+    );
+
+    final email = TextFormField(
+      keyboardType: TextInputType.emailAddress,
+      autofocus: false,
+      decoration: InputDecoration(
+        hintText: 'Username',
+        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+      ),
+    );
+
+    final password = TextFormField(
+      autofocus: false,
+      obscureText: true,
+      decoration: InputDecoration(
+        hintText: 'Password',
+        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+      ),
+    );
+
+    final loginButton = Padding(
+      padding: EdgeInsets.symmetric(vertical: 16.0),
+      child: RaisedButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        onPressed: () {},
+        padding: EdgeInsets.all(12),
+        color: Colors.blue,
+        child: Text('Log In', style: TextStyle(color: Colors.white)),
+      ),
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: ListView(
+          shrinkWrap: true,
+          padding: EdgeInsets.only(left: 24.0, right: 24.0),
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.only(top: 25.0, bottom: 50.0),
+              child: Center(
+                child: new Column(
+                  children: <Widget>[
+                    Container(
+                      height: 128.0,
+                      width: 100.0,
+                      child: new CircleAvatar(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.blue,
+                        radius: 100.0,
+                        child: logo,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.blue,
+                          width: 1.0,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    new Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: new Text(
+                        "Mahara Wipha Bar",
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+
+
+            SizedBox(height: 12.0),
+            email,
+            SizedBox(height: 8.0),
+            password,
+            SizedBox(height: 24.0),
+            loginButton,
+
+            new Container(
+              width: MediaQuery.of(context).size.width,
+              margin: const EdgeInsets.only(left: 40.0, right: 40.0, top: 10.0),
+              alignment: Alignment.center,
+              child: new Row(
+                children: <Widget>[
+                  new Expanded(
+                    child: new FlatButton(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 20.0, horizontal: 20.0),
+                      color: Colors.transparent,
+                      onPressed: () => {},
+                      child: Text(
+                        "Forgot your password?",
+                        style: TextStyle(color: Colors.blue.withOpacity(0.5)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
