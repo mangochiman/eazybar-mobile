@@ -4,7 +4,7 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String URL = "http://192.168.12.69:2000";
+const String URL = "http://192.168.43.102:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -197,6 +197,7 @@ class StandardItemsPage extends StatefulWidget {
 class _StandardItemsPageState extends State<StandardItemsPage>
     with AutomaticKeepAliveClientMixin<StandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
+  bool isLoading = true;
 
   Future<String> getStandardItems() async {
     var response = await http.get(
@@ -206,6 +207,7 @@ class _StandardItemsPageState extends State<StandardItemsPage>
     setState(() {
       var jsonResponse = json.decode(response.body);
       standardProducts = jsonResponse;
+      isLoading = false;
       if (standardProducts.length > 0) {
         stockCardAvailable = standardProducts[0]["stock_card_available"];
       }
@@ -733,11 +735,19 @@ class _StandardItemsPageState extends State<StandardItemsPage>
     return Container(
       padding: EdgeInsets.only(top: 10.0),
       color: Colors.blueGrey[500],
-      child: new Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          new Expanded(child: getListView()),
-        ],
+      child: Container(
+        child: new Stack(
+          children: <Widget>[
+            new Container(child: getListView()),
+            AnimatedOpacity(
+              opacity: (isLoading == true) ? 1.0 : 0.0,
+              duration: Duration(milliseconds: 500),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -756,6 +766,7 @@ class NonStandardItemsPage extends StatefulWidget {
 class _NonStandardItemsPageState extends State<NonStandardItemsPage>
     with AutomaticKeepAliveClientMixin<NonStandardItemsPage> {
   TextEditingController _textFieldController = TextEditingController();
+  bool isLoading = true;
 
   Future<String> getNonStandardItems() async {
     var response = await http.get(
@@ -765,6 +776,7 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
     setState(() {
       var jsonResponse = json.decode(response.body);
       nonStandardProducts = jsonResponse;
+      isLoading = false;
       if (nonStandardProducts.length > 0) {
         stockCardAvailable = nonStandardProducts[0]["stock_card_available"];
       }
@@ -1272,11 +1284,19 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
     return Container(
       padding: EdgeInsets.only(top: 10.0),
       color: Colors.blueGrey[500],
-      child: new Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          new Expanded(child: getListView()),
-        ],
+      child: Container(
+        child: new Stack(
+          children: <Widget>[
+            new Container(child: getListView()),
+            AnimatedOpacity(
+              opacity: (isLoading == true) ? 1.0 : 0.0,
+              duration: Duration(milliseconds: 500),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1301,6 +1321,7 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
   TextEditingController _amountFieldController = TextEditingController();
   TextEditingController _phoneNumberFieldController = TextEditingController();
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  bool isLoading = true;
   Debtor debtor = new Debtor();
 
   void _submitForm(BuildContext context) {
@@ -1345,6 +1366,7 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
     setState(() {
       var jsonResponse = json.decode(response.body);
       debtorsOnDate = jsonResponse;
+      isLoading = false;
     });
   }
 
@@ -1438,19 +1460,36 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
       body: Container(
           height: 500.0, // Change as per your requirement
 
-          child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: debtorsOnDate.length,
-              itemBuilder: (BuildContext context, i) {
-                return Card(
-                  child: ListTile(
-                    title: Text(debtorsOnDate[i]["name"]),
-                    subtitle: Text(
-                        'Amount owed: ${debtorsOnDate[i]["amount_owed"]} | Amount paid: ${debtorsOnDate[i]["amount_paid"]} | Balance: ${debtorsOnDate[i]["balance_due"]} | Phone #: ${debtorsOnDate[i]["phone_number"]} | Date: ${debtorsOnDate[i]["date"]}'),
-                    isThreeLine: true,
-                  ),
-                );
-              })),
+          child: Column(
+            children: <Widget>[
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: debtorsOnDate.length,
+                  itemBuilder: (BuildContext context, i) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(debtorsOnDate[i]["name"]),
+                        subtitle: Text(
+                            'Amount owed: ${debtorsOnDate[i]["amount_owed"]} | Amount paid: ${debtorsOnDate[i]["amount_paid"]} | Balance: ${debtorsOnDate[i]["balance_due"]} | Phone #: ${debtorsOnDate[i]["phone_number"]} | Date: ${debtorsOnDate[i]["date"]}'),
+                        isThreeLine: true,
+                      ),
+                    );
+                  }),
+              AnimatedOpacity(
+                opacity: (debtorsOnDate.length == 0) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Text("No debtors"),
+                ),
+              ),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: CircularProgressIndicator(),
+              )
+            ],
+          )),
     );
   }
 }
@@ -1475,6 +1514,7 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
   final GlobalKey<FormState> _authenticationFormKey =
       new GlobalKey<FormState>();
   static final _headers = {'Content-Type': 'application/json'};
+  bool _obscureText = false;
 
   Future<String> resetVariables() async {
     selectedPositions = [];
@@ -1701,6 +1741,12 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
     this.getSummary();
   }
 
+  void _toggle() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
+  }
+
   _showCashierAuthenticationDialog(BuildContext context) async {
     return showDialog(
         context: context,
@@ -1721,14 +1767,26 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                           TextFormField(
                             controller: _usernameFieldController,
                             decoration: InputDecoration(hintText: "Username"),
-                            keyboardType: TextInputType.number,
                             validator: (val) =>
                                 val.isEmpty ? 'Username is required' : null,
                           ),
                           TextFormField(
                             controller: _passwordFieldController,
-                            decoration: InputDecoration(hintText: "Password"),
-                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                                hintText: "Password",
+                                suffixIcon: IconButton(
+                                    icon: Icon(
+                                      // Based on passwordVisible state choose the icon
+                                      _obscureText
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                    onPressed: () {
+                                      // Update the state i.e. toogle the state of passwordVisible variable
+                                      _toggle();
+                                    })),
+                            obscureText: _obscureText,
                             validator: (val) =>
                                 val.isEmpty ? 'Password is required' : null,
                           )
