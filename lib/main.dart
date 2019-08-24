@@ -4198,6 +4198,8 @@ class LoginState extends State<LoginPage> {
   TextEditingController _emailFieldController = TextEditingController();
   TextEditingController _usernameFieldController = TextEditingController();
   TextEditingController _passwordFieldController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  bool isLoading = false;
 
   Future<String> authenticateUser() async {
     Map userData = {};
@@ -4205,9 +4207,22 @@ class LoginState extends State<LoginPage> {
     userData["password"] = _passwordFieldController.text;
     String json = jsonEncode(userData);
 
+    if (_usernameFieldController.text.length == 0 ||
+        _passwordFieldController.text.length == 0) {
+      showMessage('Fill all inputs to proceed', Colors.orange);
+      return null;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
     final response =
         await http.post(authenticateUserURL, headers: _headers, body: json);
     var jsonResponse = jsonDecode(response.body);
+    setState(() {
+      isLoading = false;
+    });
 
     if (jsonResponse["status"] == "success") {
     } else {
@@ -4243,7 +4258,7 @@ class LoginState extends State<LoginPage> {
   }
 
   void showMessage(String message, [MaterialColor color = Colors.red]) {
-    Scaffold.of(context).showSnackBar(
+    _scaffoldKey.currentState.showSnackBar(
         new SnackBar(backgroundColor: color, content: new Text(message)));
   }
 
@@ -4300,6 +4315,7 @@ class LoginState extends State<LoginPage> {
     );
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       body: Center(
         child: ListView(
@@ -4344,7 +4360,28 @@ class LoginState extends State<LoginPage> {
             SizedBox(height: 8.0),
             password,
             SizedBox(height: 24.0),
-            loginButton,
+
+            Stack(
+              children: <Widget>[
+                AnimatedOpacity(
+                  opacity: (isLoading == false) ? 1.0 : 0.0,
+                  duration: Duration(milliseconds: 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      loginButton
+                    ],
+                  ),
+                ),
+                AnimatedOpacity(
+                  opacity: (isLoading == true) ? 1.0 : 0.0,
+                  duration: Duration(milliseconds: 100),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            ),
+            //loginButton,
+
             new Container(
               width: MediaQuery.of(context).size.width,
               margin: const EdgeInsets.only(left: 40.0, right: 40.0, top: 10.0),
