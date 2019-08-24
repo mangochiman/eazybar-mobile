@@ -40,8 +40,8 @@ void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   final appTitle = 'Mahara Wiphar Bar';
-  @override
 
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: appTitle,
@@ -3678,27 +3678,23 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+Map currentUser;
+
 class _MyHomePageState extends State<MyHomePage> {
-  //final String title;
-
-  //MyHomePage({Key key, this.title}) : super(key: key);
-
   final prefs = SharedPreferences.getInstance();
 
   Future<String> checkIfUserIsAuthenticated() async {
     final prefs = await SharedPreferences.getInstance();
     final user = prefs.getString('user') ?? null;
-    //print(jsonDecode(user)["username"]);
     if (user != null) {
-      print("User is authenticated");
+      setState(() {
+        currentUser = jsonDecode(user);
+      });
     } else {
-      print("User is not authenticated");
-
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
       );
-
     }
   }
 
@@ -3744,9 +3740,18 @@ class _MyHomePageState extends State<MyHomePage> {
     return jsonResponse;
   }
 
+  Future<String> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove("user");
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage()),
+    );
+  }
+
   @override
   void initState() {
-    print("testing");
     this.checkIfUserIsAuthenticated();
   }
 
@@ -3763,35 +3768,95 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: GridView.count(
-        crossAxisCount: 2,
-        padding: EdgeInsets.all(16.0),
-        childAspectRatio: 8.0 / 9.0,
-        // TODO: Build a grid of cards (102)
-        children: <Widget>[
-          Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    AspectRatio(
-                      aspectRatio: 15.0 / 6.0,
-                      child: Icon(Icons.arrow_forward_ios,
-                          color: Colors.blueAccent),
+      body: WillPopScope(
+          child: GridView.count(
+            crossAxisCount: 2,
+            padding: EdgeInsets.all(16.0),
+            childAspectRatio: 8.0 / 9.0,
+            // TODO: Build a grid of cards (102)
+            children: <Widget>[
+              Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        AspectRatio(
+                          aspectRatio: 15.0 / 6.0,
+                          child: Icon(Icons.arrow_forward_ios,
+                              color: Colors.blueAccent),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text('Debtors'),
+                              SizedBox(height: 8.0),
+                              FutureBuilder(
+                                future: getDebtors(),
+                                builder: (BuildContext context,
+                                    AsyncSnapshot snapshot) {
+                                  /*switch (snapshot.connectionState) {
+                                    case ConnectionState.none:
+                                      return Text('Press button to start.');
+                                    case ConnectionState.active:
+                                    case ConnectionState.waiting:
+                                      return Text('Awaiting result...');
+                                    case ConnectionState.done:
+                                      if (snapshot.hasError)
+                                        return Text('Error: ${snapshot.error}');
+                                      return Text('Result: ${snapshot.data}');
+                                  }*/
+
+                                  if (snapshot.hasData) {
+                                    return Text('${snapshot.data.length}',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold));
+                                  } else {
+                                    return Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                },
+                              ),
+                              //Text('20',
+                              //style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => DebtorsPage()),
+                      );
+                    },
+                  )),
+              Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('Debtors'),
-                          SizedBox(height: 8.0),
-                          FutureBuilder(
-                            future: getDebtors(),
-                            builder:
-                                (BuildContext context, AsyncSnapshot snapshot) {
-                              /*switch (snapshot.connectionState) {
+                          AspectRatio(
+                            aspectRatio: 15.0 / 6.0,
+                            child: Icon(Icons.arrow_forward_ios,
+                                color: Colors.blueAccent),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text('Damages'),
+                                SizedBox(height: 8.0),
+                                FutureBuilder(
+                                  future: getDamages(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot snapshot) {
+                                    /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
                                     case ConnectionState.active:
@@ -3803,54 +3868,52 @@ class _MyHomePageState extends State<MyHomePage> {
                                       return Text('Result: ${snapshot.data}');
                                   }*/
 
-                              if (snapshot.hasData) {
-                                return Text('${snapshot.data.length}',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold));
-                              } else {
-                                return Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
-                            },
+                                    if (snapshot.hasData) {
+                                      return Text('${snapshot.data.length}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold));
+                                    } else {
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                          //Text('20',
-                          //style: TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => DebtorsPage()),
-                  );
-                },
-              )),
-          Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      AspectRatio(
-                        aspectRatio: 15.0 / 6.0,
-                        child: Icon(Icons.arrow_forward_ios,
-                            color: Colors.blueAccent),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('Damages'),
-                            SizedBox(height: 8.0),
-                            FutureBuilder(
-                              future: getDamages(),
-                              builder: (BuildContext context,
-                                  AsyncSnapshot snapshot) {
-                                /*switch (snapshot.connectionState) {
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => DamagesPage()),
+                        );
+                      })),
+              Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          AspectRatio(
+                            aspectRatio: 15.0 / 6.0,
+                            child: Icon(Icons.arrow_forward_ios,
+                                color: Colors.blueAccent),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text('Complementary'),
+                                SizedBox(height: 8.0),
+                                FutureBuilder(
+                                  future: getComplementary(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot snapshot) {
+                                    /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
                                     case ConnectionState.active:
@@ -3862,51 +3925,52 @@ class _MyHomePageState extends State<MyHomePage> {
                                       return Text('Result: ${snapshot.data}');
                                   }*/
 
-                                if (snapshot.hasData) {
-                                  return Text('${snapshot.data.length}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold));
-                                } else {
-                                  return Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                              },
+                                    if (snapshot.hasData) {
+                                      return Text('${snapshot.data.length}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold));
+                                    } else {
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => DamagesPage()),
-                    );
-                  })),
-          Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      AspectRatio(
-                        aspectRatio: 15.0 / 6.0,
-                        child: Icon(Icons.arrow_forward_ios,
-                            color: Colors.blueAccent),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('Complementary'),
-                            SizedBox(height: 8.0),
-                            FutureBuilder(
-                              future: getComplementary(),
-                              builder: (BuildContext context,
-                                  AsyncSnapshot snapshot) {
-                                /*switch (snapshot.connectionState) {
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ComplementaryPage()),
+                        );
+                      })),
+              Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          AspectRatio(
+                            aspectRatio: 15.0 / 6.0,
+                            child: Icon(Icons.arrow_forward_ios,
+                                color: Colors.blueAccent),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text('User accounts'),
+                                SizedBox(height: 8.0),
+                                FutureBuilder(
+                                  future: getUserAccounts(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot snapshot) {
+                                    /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
                                     case ConnectionState.active:
@@ -3918,52 +3982,52 @@ class _MyHomePageState extends State<MyHomePage> {
                                       return Text('Result: ${snapshot.data}');
                                   }*/
 
-                                if (snapshot.hasData) {
-                                  return Text('${snapshot.data.length}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold));
-                                } else {
-                                  return Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                              },
+                                    if (snapshot.hasData) {
+                                      return Text('${snapshot.data.length}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold));
+                                    } else {
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ComplementaryPage()),
-                    );
-                  })),
-          Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      AspectRatio(
-                        aspectRatio: 15.0 / 6.0,
-                        child: Icon(Icons.arrow_forward_ios,
-                            color: Colors.blueAccent),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('User accounts'),
-                            SizedBox(height: 8.0),
-                            FutureBuilder(
-                              future: getUserAccounts(),
-                              builder: (BuildContext context,
-                                  AsyncSnapshot snapshot) {
-                                /*switch (snapshot.connectionState) {
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UserAccountsPage()),
+                        );
+                      })),
+              Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          AspectRatio(
+                            aspectRatio: 15.0 / 6.0,
+                            child: Icon(Icons.arrow_forward_ios,
+                                color: Colors.blueAccent),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text('Products running out of stock'),
+                                SizedBox(height: 8.0),
+                                FutureBuilder(
+                                  future: getProductsRunningOutOfStock(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot snapshot) {
+                                    /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
                                     case ConnectionState.active:
@@ -3975,52 +4039,53 @@ class _MyHomePageState extends State<MyHomePage> {
                                       return Text('Result: ${snapshot.data}');
                                   }*/
 
-                                if (snapshot.hasData) {
-                                  return Text('${snapshot.data.length}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold));
-                                } else {
-                                  return Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                              },
+                                    if (snapshot.hasData) {
+                                      return Text('${snapshot.data.length}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold));
+                                    } else {
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => UserAccountsPage()),
-                    );
-                  })),
-          Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      AspectRatio(
-                        aspectRatio: 15.0 / 6.0,
-                        child: Icon(Icons.arrow_forward_ios,
-                            color: Colors.blueAccent),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('Products running out of stock'),
-                            SizedBox(height: 8.0),
-                            FutureBuilder(
-                              future: getProductsRunningOutOfStock(),
-                              builder: (BuildContext context,
-                                  AsyncSnapshot snapshot) {
-                                /*switch (snapshot.connectionState) {
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductsRunningOutOfStockPage()),
+                        );
+                      })),
+              Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          AspectRatio(
+                            aspectRatio: 15.0 / 6.0,
+                            child: Icon(Icons.arrow_forward_ios,
+                                color: Colors.blueAccent),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text('Products out of stock'),
+                                SizedBox(height: 8.0),
+                                FutureBuilder(
+                                  future: getProductsOutOfStock(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot snapshot) {
+                                    /*switch (snapshot.connectionState) {
                                     case ConnectionState.none:
                                       return Text('Press button to start.');
                                     case ConnectionState.active:
@@ -4032,89 +4097,35 @@ class _MyHomePageState extends State<MyHomePage> {
                                       return Text('Result: ${snapshot.data}');
                                   }*/
 
-                                if (snapshot.hasData) {
-                                  return Text('${snapshot.data.length}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold));
-                                } else {
-                                  return Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                              },
+                                    if (snapshot.hasData) {
+                                      return Text('${snapshot.data.length}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold));
+                                    } else {
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              ProductsRunningOutOfStockPage()),
-                    );
-                  })),
-          Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      AspectRatio(
-                        aspectRatio: 15.0 / 6.0,
-                        child: Icon(Icons.arrow_forward_ios,
-                            color: Colors.blueAccent),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('Products out of stock'),
-                            SizedBox(height: 8.0),
-                            FutureBuilder(
-                              future: getProductsOutOfStock(),
-                              builder: (BuildContext context,
-                                  AsyncSnapshot snapshot) {
-                                /*switch (snapshot.connectionState) {
-                                    case ConnectionState.none:
-                                      return Text('Press button to start.');
-                                    case ConnectionState.active:
-                                    case ConnectionState.waiting:
-                                      return Text('Awaiting result...');
-                                    case ConnectionState.done:
-                                      if (snapshot.hasError)
-                                        return Text('Error: ${snapshot.error}');
-                                      return Text('Result: ${snapshot.data}');
-                                  }*/
-
-                                if (snapshot.hasData) {
-                                  return Text('${snapshot.data.length}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold));
-                                } else {
-                                  return Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ProductsOutOfStockPage()),
-                    );
-                  }))
-        ],
-      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ProductsOutOfStockPage()),
+                        );
+                      }))
+            ],
+          ),
+          onWillPop: () async {
+            Future.value(
+                false); //return a `Future` with false value so this route cant be popped or closed.
+          }),
       drawer: Drawer(
         // Add a ListView to the drawer. This ensures the user can scroll
         // through the options in the drawer if there isn't enough vertical
@@ -4198,11 +4209,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ListTile(
               title: Text('Logout'),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
+                logout();
               },
             ),
           ],
@@ -4252,6 +4259,10 @@ class LoginState extends State<LoginPage> {
 
     if (jsonResponse["status"] == "success") {
       prefs.setString("user", jsonEncode(jsonResponse["user"]));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MyHomePage()),
+      );
     } else {
       showMessage('Wrong username/password combination');
     }
@@ -4344,95 +4355,102 @@ class LoginState extends State<LoginPage> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
-      body: Center(
-        child: ListView(
-          shrinkWrap: true,
-          padding: EdgeInsets.only(left: 24.0, right: 24.0),
-          children: <Widget>[
-            Container(
-              padding: const EdgeInsets.only(top: 25.0, bottom: 50.0),
-              child: Center(
-                child: new Column(
-                  children: <Widget>[
-                    Container(
-                      height: 128.0,
-                      width: 100.0,
-                      child: new CircleAvatar(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.blue,
-                        radius: 100.0,
-                        child: logo,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.blue,
-                          width: 1.0,
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    new Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: new Text(
-                        "Mahara Wipha Bar",
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 12.0),
-            email,
-            SizedBox(height: 8.0),
-            password,
-            SizedBox(height: 24.0),
-
-            Stack(
+      body: WillPopScope(
+          child: Center(
+            child: ListView(
+              shrinkWrap: true,
+              padding: EdgeInsets.only(left: 24.0, right: 24.0),
               children: <Widget>[
-                AnimatedOpacity(
-                  opacity: (isLoading == false) ? 1.0 : 0.0,
-                  duration: Duration(milliseconds: 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[loginButton],
+                Container(
+                  padding: const EdgeInsets.only(top: 25.0, bottom: 50.0),
+                  child: Center(
+                    child: new Column(
+                      children: <Widget>[
+                        Container(
+                          height: 128.0,
+                          width: 100.0,
+                          child: new CircleAvatar(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.blue,
+                            radius: 100.0,
+                            child: logo,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.blue,
+                              width: 1.0,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        new Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: new Text(
+                            "Mahara Wipha Bar",
+                            style: TextStyle(color: Colors.blue),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
-                AnimatedOpacity(
-                  opacity: (isLoading == true) ? 1.0 : 0.0,
-                  duration: Duration(milliseconds: 100),
-                  child: Center(child: CircularProgressIndicator()),
+                SizedBox(height: 12.0),
+                email,
+                SizedBox(height: 8.0),
+                password,
+                SizedBox(height: 24.0),
+
+                Stack(
+                  children: <Widget>[
+                    AnimatedOpacity(
+                      opacity: (isLoading == false) ? 1.0 : 0.0,
+                      duration: Duration(milliseconds: 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[loginButton],
+                      ),
+                    ),
+                    AnimatedOpacity(
+                      opacity: (isLoading == true) ? 1.0 : 0.0,
+                      duration: Duration(milliseconds: 100),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ],
+                ),
+                //loginButton,
+
+                new Container(
+                  width: MediaQuery.of(context).size.width,
+                  margin:
+                      const EdgeInsets.only(left: 40.0, right: 40.0, top: 10.0),
+                  alignment: Alignment.center,
+                  child: new Row(
+                    children: <Widget>[
+                      new Expanded(
+                        child: new FlatButton(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 20.0, horizontal: 20.0),
+                          color: Colors.transparent,
+                          onPressed: () {
+                            _showResetPasswordDialog(context);
+                          },
+                          child: Text(
+                            "Forgot your password?",
+                            style:
+                                TextStyle(color: Colors.blue.withOpacity(0.5)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            //loginButton,
-
-            new Container(
-              width: MediaQuery.of(context).size.width,
-              margin: const EdgeInsets.only(left: 40.0, right: 40.0, top: 10.0),
-              alignment: Alignment.center,
-              child: new Row(
-                children: <Widget>[
-                  new Expanded(
-                    child: new FlatButton(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 20.0, horizontal: 20.0),
-                      color: Colors.transparent,
-                      onPressed: () {
-                        _showResetPasswordDialog(context);
-                      },
-                      child: Text(
-                        "Forgot your password?",
-                        style: TextStyle(color: Colors.blue.withOpacity(0.5)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+          onWillPop: () async {
+            Future.value(
+                false); //return a `Future` with false value so this route cant be popped or closed.
+          }),
     );
   }
 }
