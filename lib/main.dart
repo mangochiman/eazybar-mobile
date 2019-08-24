@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const String URL = "http://192.168.43.102:2000";
 String debtorsUrl = URL + '/api/v1/debtors';
@@ -39,8 +40,8 @@ void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   final appTitle = 'Mahara Wiphar Bar';
-
   @override
+
   Widget build(BuildContext context) {
     return MaterialApp(
       title: appTitle,
@@ -3682,6 +3683,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //MyHomePage({Key key, this.title}) : super(key: key);
 
+  final prefs = SharedPreferences.getInstance();
+
+  Future<String> checkIfUserIsAuthenticated() async {
+    final prefs = await SharedPreferences.getInstance();
+    final user = prefs.getString('user') ?? null;
+    //print(jsonDecode(user)["username"]);
+    if (user != null) {
+      print("User is authenticated");
+    } else {
+      print("User is not authenticated");
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+
+    }
+  }
+
   Future<dynamic> getDebtors() async {
     var response = await http.get(Uri.encodeFull(debtorsUrl),
         headers: {"Accept": "application/json"});
@@ -3725,6 +3745,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    print("testing");
+    this.checkIfUserIsAuthenticated();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -4206,6 +4231,7 @@ class LoginState extends State<LoginPage> {
     userData["username"] = _usernameFieldController.text;
     userData["password"] = _passwordFieldController.text;
     String json = jsonEncode(userData);
+    final prefs = await SharedPreferences.getInstance();
 
     if (_usernameFieldController.text.length == 0 ||
         _passwordFieldController.text.length == 0) {
@@ -4225,6 +4251,7 @@ class LoginState extends State<LoginPage> {
     });
 
     if (jsonResponse["status"] == "success") {
+      prefs.setString("user", jsonEncode(jsonResponse["user"]));
     } else {
       showMessage('Wrong username/password combination');
     }
@@ -4368,9 +4395,7 @@ class LoginState extends State<LoginPage> {
                   duration: Duration(milliseconds: 100),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      loginButton
-                    ],
+                    children: <Widget>[loginButton],
                   ),
                 ),
                 AnimatedOpacity(
