@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String URL = "http://192.168.43.102:2000";
+//const String URL = "http://71.19.148.18:5000";
+
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
 String complementaryUrl = URL + '/api/v1/complementary';
@@ -3148,12 +3150,14 @@ class DebtorsPaymentPage extends StatefulWidget {
 
 class _DebtorsPaymentPageState extends State<DebtorsPaymentPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getDebtorsPaymentList() async {
     var response = await http.get(Uri.encodeFull(debtorPaymentsUrl),
         headers: {"Accept": "application/json"});
 
     setState(() {
+      isLoading = false;
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
     });
@@ -3212,18 +3216,36 @@ class _DebtorsPaymentPageState extends State<DebtorsPaymentPage> {
           )
         ],
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text(data[i]["amount_paid"]),
-                subtitle: Text(
-                    'Debtor: ${data[i]["debtor"]} | Amount owed: ${data[i]["amount_owed"]} | Date paid: ${data[i]["date_paid"]} | Date owed: ${data[i]["date_owed"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              new Container(
+                  child: ListView.builder(
+                      itemCount: data == null ? 0 : data.length,
+                      itemBuilder: (BuildContext context, i) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(data[i]["amount_paid"]),
+                            subtitle: Text(
+                                'Debtor: ${data[i]["debtor"]} | Amount owed: ${data[i]["amount_owed"]} | Date paid: ${data[i]["date_paid"]} | Date owed: ${data[i]["date_owed"]}'),
+                            isThreeLine: true,
+                          ),
+                        );
+                      })),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3235,12 +3257,14 @@ class OverdueDebtorsPage extends StatefulWidget {
 
 class _OverdueDebtorsPageState extends State<OverdueDebtorsPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getOverdueDebtorsList() async {
     var response = await http.get(Uri.encodeFull(overdueDebtorsUrl),
         headers: {"Accept": "application/json"});
 
     setState(() {
+      isLoading = false;
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
     });
@@ -3299,18 +3323,36 @@ class _OverdueDebtorsPageState extends State<OverdueDebtorsPage> {
           )
         ],
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text(data[i]["name"]),
-                subtitle: Text(
-                    'Amount owed: ${data[i]["amount_owed"]} | Date: ${data[i]["date"]} | Amount paid: ${data[i]["amount_paid"]} | Balance: ${data[i]["balance_due"]} | Phone #: ${data[i]["phone_number"]} | Days gone #: ${data[i]["days_gone"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              new Container(
+                  child: ListView.builder(
+                      itemCount: data == null ? 0 : data.length,
+                      itemBuilder: (BuildContext context, i) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(data[i]["name"]),
+                            subtitle: Text(
+                                'Amount owed: ${data[i]["amount_owed"]} | Date: ${data[i]["date"]} | Amount paid: ${data[i]["amount_paid"]} | Balance: ${data[i]["balance_due"]} | Phone #: ${data[i]["phone_number"]} | Days gone #: ${data[i]["days_gone"]}'),
+                            isThreeLine: true,
+                          ),
+                        );
+                      })),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3322,12 +3364,14 @@ class DebtorsPage extends StatefulWidget {
 
 class _DebtorsPageState extends State<DebtorsPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getDebtorsList() async {
     var response = await http.get(Uri.encodeFull(debtorsUrl),
         headers: {"Accept": "application/json"});
 
     setState(() {
+      isLoading = false;
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
     });
@@ -3415,18 +3459,36 @@ class _DebtorsPageState extends State<DebtorsPage> {
                   ])
         ],
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text(data[i]["name"]),
-                subtitle: Text(
-                    'Amount owed: ${data[i]["amount_owed"]} | Date: ${data[i]["date"]} | Amount paid: ${data[i]["amount_paid"]} | Balance: ${data[i]["balance_due"]} | Phone #: ${data[i]["phone_number"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              new Container(
+                  child: ListView.builder(
+                      itemCount: data == null ? 0 : data.length,
+                      itemBuilder: (BuildContext context, i) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(data[i]["name"]),
+                            subtitle: Text(
+                                'Amount owed: ${data[i]["amount_owed"]} | Date: ${data[i]["date"]} | Amount paid: ${data[i]["amount_paid"]} | Balance: ${data[i]["balance_due"]} | Phone #: ${data[i]["phone_number"]}'),
+                            isThreeLine: true,
+                          ),
+                        );
+                      })),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3438,12 +3500,14 @@ class DamagesPage extends StatefulWidget {
 
 class _DamagesPageState extends State<DamagesPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getDamagesList() async {
     var response = await http.get(Uri.encodeFull(damagesUrl),
         headers: {"Accept": "application/json"});
 
     setState(() {
+      isLoading = false;
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
     });
@@ -3459,18 +3523,36 @@ class _DamagesPageState extends State<DamagesPage> {
       appBar: AppBar(
         title: Text('Damages'),
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text(data[i]["product_name"]),
-                subtitle: Text(
-                    'Date: ${data[i]["stock_date"]} | Damaged quantity: ${data[i]["damaged_quantity"]} | Product price: ${data[i]["product_price"]} | Product category : ${data[i]["product_category"]} | Total amount : ${data[i]["damaged_value"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              new Container(
+                  child: ListView.builder(
+                      itemCount: data == null ? 0 : data.length,
+                      itemBuilder: (BuildContext context, i) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(data[i]["product_name"]),
+                            subtitle: Text(
+                                'Date: ${data[i]["stock_date"]} | Damaged quantity: ${data[i]["damaged_quantity"]} | Product price: ${data[i]["product_price"]} | Product category : ${data[i]["product_category"]} | Total amount : ${data[i]["damaged_value"]}'),
+                            isThreeLine: true,
+                          ),
+                        );
+                      })),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3482,12 +3564,14 @@ class ComplementaryPage extends StatefulWidget {
 
 class _ComplementaryPageState extends State<ComplementaryPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getComplementaryList() async {
     var response = await http.get(Uri.encodeFull(complementaryUrl),
         headers: {"Accept": "application/json"});
 
     setState(() {
+      isLoading = false;
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
     });
@@ -3503,18 +3587,36 @@ class _ComplementaryPageState extends State<ComplementaryPage> {
       appBar: AppBar(
         title: Text('Complementary'),
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text(data[i]["product_name"]),
-                subtitle: Text(
-                    'Date: ${data[i]["stock_date"]} | Complementary quantity: ${data[i]["complementary_quantity"]} | Product price: ${data[i]["product_price"]} | Product category : ${data[i]["product_category"]} | Total amount : ${data[i]["complementary_value"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              new Container(
+                  child: ListView.builder(
+                      itemCount: data == null ? 0 : data.length,
+                      itemBuilder: (BuildContext context, i) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(data[i]["product_name"]),
+                            subtitle: Text(
+                                'Date: ${data[i]["stock_date"]} | Complementary quantity: ${data[i]["complementary_quantity"]} | Product price: ${data[i]["product_price"]} | Product category : ${data[i]["product_category"]} | Total amount : ${data[i]["complementary_value"]}'),
+                            isThreeLine: true,
+                          ),
+                        );
+                      })),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3592,12 +3694,14 @@ class ProductsRunningOutOfStockPage extends StatefulWidget {
 class _ProductsRunningOutOfStockPageState
     extends State<ProductsRunningOutOfStockPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getProductsRunningOutOfStockList() async {
     var response = await http.get(Uri.encodeFull(productsRunningOutOfStockUrl),
         headers: {"Accept": "application/json"});
 
     setState(() {
+      isLoading = false;
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
     });
@@ -3613,18 +3717,36 @@ class _ProductsRunningOutOfStockPageState
       appBar: AppBar(
         title: Text('Products running low'),
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text('${data[i]["product_name"]}'),
-                subtitle: Text(
-                    'Minimum required: ${data[i]["minimum_required"]} | Product category: ${data[i]["product_category"]} | Current stock: ${data[i]["current_stock"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              new Container(
+                  child: ListView.builder(
+                      itemCount: data == null ? 0 : data.length,
+                      itemBuilder: (BuildContext context, i) {
+                        return Card(
+                          child: ListTile(
+                            title: Text('${data[i]["product_name"]}'),
+                            subtitle: Text(
+                                'Minimum required: ${data[i]["minimum_required"]} | Product category: ${data[i]["product_category"]} | Current stock: ${data[i]["current_stock"]}'),
+                            isThreeLine: true,
+                          ),
+                        );
+                      })),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3636,12 +3758,14 @@ class ProductsOutOfStockPage extends StatefulWidget {
 
 class _ProductsOutOfStockPageState extends State<ProductsOutOfStockPage> {
   List data;
+  bool isLoading = true;
 
   Future<String> getProductsOutOfStockList() async {
     var response = await http.get(Uri.encodeFull(productsOutOfStockUrl),
         headers: {"Accept": "application/json"});
 
     setState(() {
+      isLoading = false;
       var jsonResponse = json.decode(response.body);
       data = jsonResponse;
     });
@@ -3657,18 +3781,36 @@ class _ProductsOutOfStockPageState extends State<ProductsOutOfStockPage> {
       appBar: AppBar(
         title: Text('Products out of stock'),
       ),
-      body: ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return Card(
-              child: ListTile(
-                title: Text('${data[i]["product_name"]}'),
-                subtitle: Text(
-                    'Minimum required: ${data[i]["minimum_required"]} | Product category: ${data[i]["product_category"]} | Current stock: ${data[i]["current_stock"]}'),
-                isThreeLine: true,
+      body: Container(
+        padding: EdgeInsets.only(top: 10.0),
+        color: Colors.blueGrey[500],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              new Container(
+                  child: ListView.builder(
+                      itemCount: data == null ? 0 : data.length,
+                      itemBuilder: (BuildContext context, i) {
+                        return Card(
+                          child: ListTile(
+                            title: Text('${data[i]["product_name"]}'),
+                            subtitle: Text(
+                                'Minimum required: ${data[i]["minimum_required"]} | Product category: ${data[i]["product_category"]} | Current stock: ${data[i]["current_stock"]}'),
+                            isThreeLine: true,
+                          ),
+                        );
+                      })),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-            );
-          }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3760,13 +3902,21 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text("Mahara Wipha Bar"),
         actions: <Widget>[
-          IconButton(
+          /*IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
               getDebtors();
             },
-          )
+          )*/
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Add your onPressed code here!
+
+        },
+        child: Icon(Icons.refresh),
+        backgroundColor: Colors.blue,
       ),
       body: WillPopScope(
           child: GridView.count(
@@ -4135,7 +4285,8 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              child: Text('Ernest Matola <mngochiman@gmail.com>'),
+              child: Text(
+                  "${currentUser['first_name']} ${currentUser['last_name']} <${currentUser['email']}>"),
               decoration: BoxDecoration(
                 color: Colors.blue,
               ),
