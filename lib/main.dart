@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String URL = "http://192.168.43.102:2000";
+const String URL = "http://192.168.12.69:2000";
 //const String URL = "http://71.19.148.18:5000";
 
 String debtorsUrl = URL + '/api/v1/debtors';
@@ -37,6 +37,7 @@ String addDebtorsURL = URL + '/api/v1/create_debtors';
 String productsTotalURL = URL + '/api/v1/products_count';
 String authenticateUserURL = URL + '/api/v1/authenticate';
 String createStockURL = URL + '/api/v1/create_stock';
+String passwordReminderURL = URL + '/api/v1/reset_password';
 
 void main() => runApp(MyApp());
 
@@ -3822,6 +3823,10 @@ class MyHomePage extends StatefulWidget {
 
 Map currentUser;
 
+String firstName;
+String lastName;
+String email;
+
 class _MyHomePageState extends State<MyHomePage> {
   final prefs = SharedPreferences.getInstance();
 
@@ -3895,6 +3900,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     this.checkIfUserIsAuthenticated();
+
+    try {
+      firstName = currentUser['first_name'];
+      lastName = currentUser['last_name'];
+      email = currentUser['email'];
+    } catch (e) {}
   }
 
   Widget build(BuildContext context) {
@@ -3913,7 +3924,6 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Add your onPressed code here!
-
         },
         child: Icon(Icons.refresh),
         backgroundColor: Colors.blue,
@@ -4285,8 +4295,7 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              child: Text(
-                  "${currentUser['first_name']} ${currentUser['last_name']} <${currentUser['email']}>"),
+              child: Text("$firstName $lastName <$email>"),
               decoration: BoxDecoration(
                 color: Colors.blue,
               ),
@@ -4384,6 +4393,26 @@ class LoginState extends State<LoginPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool isLoading = false;
 
+  Future<String> passwordReminder(BuildContext context) async {
+    Map email = {};
+    email["email"] = _emailFieldController.text;
+
+    String json = jsonEncode(email);
+    bool emailValid = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(_emailFieldController.text);
+
+    if (!emailValid) {
+      showMessage('Input a valid email to proceed', Colors.orange);
+      return null;
+    }
+
+    final response =
+        await http.post(passwordReminderURL, headers: _headers, body: json);
+    _emailFieldController.text = "";
+    Navigator.of(context).pop();
+    showMessage('Check your email for the new password', Colors.blue);
+  }
+
   Future<String> authenticateUser() async {
     Map userData = {};
     userData["username"] = _usernameFieldController.text;
@@ -4439,7 +4468,9 @@ class LoginState extends State<LoginPage> {
               ),
               new FlatButton(
                 child: new Text('Reset password'),
-                onPressed: () {},
+                onPressed: () {
+                  passwordReminder(context);
+                },
               )
             ],
           );
