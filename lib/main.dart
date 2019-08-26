@@ -154,6 +154,15 @@ class _StockCardMainPageState extends State<StockCardMainPage>
         initialIndex: 0,
         child: Scaffold(
           appBar: AppBar(
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MyHomePage()),
+                  );
+                },
+              ),
               bottom: TabBar(tabs: [
                 Tab(text: 'Standard'),
                 Tab(text: 'Non standard'),
@@ -236,6 +245,19 @@ class _StandardItemsPageState extends State<StandardItemsPage>
     this.getProductsCount();
   }
 
+  bool _isPositiveNumber(String str) {
+    if (str == null) {
+      return false;
+    }
+
+    double number = double.tryParse(str);
+    if (number != null && number >= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   ListView getListView() => new ListView.builder(
       itemCount: standardProducts.length,
       itemBuilder: (BuildContext context, int position) {
@@ -296,6 +318,11 @@ class _StandardItemsPageState extends State<StandardItemsPage>
   }
 
   void updateClosedStock(BuildContext context, int i) {
+    if (!_isPositiveNumber(_textFieldController.text)) {
+      showMessage('Please input a valid number');
+      return null;
+    }
+
     int defaultValue = 0;
 
     int currentClosingStock =
@@ -352,6 +379,11 @@ class _StandardItemsPageState extends State<StandardItemsPage>
   }
 
   void updateDamagedStock(BuildContext context, int i) {
+    if (!_isPositiveNumber(_textFieldController.text)) {
+      showMessage('Please input a valid number');
+      return null;
+    }
+
     int defaultValue = 0;
     int currentDamagedStock =
         int.tryParse(_textFieldController.text) ?? defaultValue;
@@ -409,6 +441,11 @@ class _StandardItemsPageState extends State<StandardItemsPage>
   }
 
   void updateComplementaryStock(BuildContext context, int i) {
+    if (!_isPositiveNumber(_textFieldController.text)) {
+      showMessage('Please input a valid number');
+      return null;
+    }
+
     int defaultValue = 0;
     int currentComplementaryStock =
         int.tryParse(_textFieldController.text) ?? defaultValue;
@@ -772,6 +809,19 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
   TextEditingController _textFieldController = TextEditingController();
   bool isLoading = true;
 
+  bool _isPositiveNumber(String str) {
+    if (str == null) {
+      return false;
+    }
+
+    double number = double.tryParse(str);
+    if (number != null && number >= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<String> getNonStandardItems() async {
     var response = await http.get(
         Uri.encodeFull(nonStandardProductsDataURL + "?date=" + stockDate),
@@ -856,6 +906,11 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
   }
 
   void updateClosedStock(BuildContext context, int i) {
+    if (!_isPositiveNumber(_textFieldController.text)) {
+      showMessage('Please input a valid number');
+      return null;
+    }
+
     int defaultValue = 0;
 
     int currentClosingStock =
@@ -909,6 +964,11 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
   }
 
   void updateDamagedStock(BuildContext context, int i) {
+    if (!_isPositiveNumber(_textFieldController.text)) {
+      showMessage('Please input a valid number');
+      return null;
+    }
+
     int defaultValue = 0;
     int currentDamagedStock =
         int.tryParse(_textFieldController.text) ?? defaultValue;
@@ -964,6 +1024,11 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
   }
 
   void updateComplementaryStock(BuildContext context, int i) {
+    if (!_isPositiveNumber(_textFieldController.text)) {
+      showMessage('Please input a valid number');
+      return null;
+    }
+
     int defaultValue = 0;
     int currentComplementaryStock =
         int.tryParse(_textFieldController.text) ?? defaultValue;
@@ -1055,10 +1120,10 @@ class _NonStandardItemsPageState extends State<NonStandardItemsPage>
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Close stock'),
+            title: Text('Shots sold'),
             content: TextField(
               controller: _textFieldController,
-              decoration: InputDecoration(hintText: "Closing amount"),
+              decoration: InputDecoration(hintText: "Quantity"),
               keyboardType: TextInputType.number,
             ),
             actions: <Widget>[
@@ -1333,6 +1398,11 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
     if (!form.validate()) {
       showMessage('Form is not valid!  Please review and correct.');
     } else {
+      if (!_isPositiveNumber(debtor.amountOwed)) {
+        showMessage('Please input a valid number on amount owed input');
+        return null;
+      }
+
       form.save(); //This invokes each onSaved event
 
       var debtorService = new DebtorService();
@@ -1384,6 +1454,19 @@ class _DebtorsOnDatePageState extends State<DebtorsOnDatePage>
   void showMessage(String message, [MaterialColor color = Colors.red]) {
     Scaffold.of(context).showSnackBar(
         new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
+  bool _isPositiveNumber(String str) {
+    if (str == null) {
+      return false;
+    }
+
+    double number = double.tryParse(str);
+    if (number != null && number >= 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   _showAddDebtorsDialog(BuildContext context) async {
@@ -1853,6 +1936,19 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
     }
   }
 
+  bool _isPositiveNumber(String str) {
+    if (str == null) {
+      return false;
+    }
+
+    double number = double.tryParse(str);
+    if (number != null && number >= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   _showCashCollectedDialog(BuildContext context) async {
     return showDialog(
         context: context,
@@ -1897,6 +1993,11 @@ class _StockSummaryPageState extends State<StockSummaryPage> {
                   if (!form.validate()) {
                     showMessage('Input not valid!  Please review and correct.');
                   } else {
+                    if (!_isPositiveNumber(_amountFieldController.text)) {
+                      showMessage('Please input a valid number');
+                      return null;
+                    }
+
                     setState(() {
                       try {
                         cashCollected =
