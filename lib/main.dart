@@ -3932,6 +3932,20 @@ String email;
 
 class _MyHomePageState extends State<MyHomePage> {
   final prefs = SharedPreferences.getInstance();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  List debtorsList = [];
+  List damagesList = [];
+  List complementaryList = [];
+  List userAccountsList = [];
+  List productsRunningOutOfStockList = [];
+  List productsOutOfStockList = [];
+
+  bool isDebtorsLoading = true;
+  bool isDamagesLoading = true;
+  bool isComplementaryLoading = true;
+  bool isUserAccountsLoading = true;
+  bool isProductsRunningOutOfStockLoading = true;
+  bool isProductsOutOfStockLoading = true;
 
   Future<String> checkIfUserIsAuthenticated() async {
     final prefs = await SharedPreferences.getInstance();
@@ -3948,46 +3962,64 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<dynamic> getDebtors() async {
+  Future<String> getDebtors() async {
     var response = await http.get(Uri.encodeFull(debtorsUrl),
         headers: {"Accept": "application/json"});
     var jsonResponse = json.decode(response.body);
-    return jsonResponse;
+    setState(() {
+      isDebtorsLoading = false;
+      debtorsList = jsonResponse;
+    });
   }
 
-  Future<dynamic> getDamages() async {
+  Future<String> getDamages() async {
     var response = await http.get(Uri.encodeFull(damagesUrl),
         headers: {"Accept": "application/json"});
     var jsonResponse = json.decode(response.body);
-    return jsonResponse;
+    setState(() {
+      isDamagesLoading = false;
+      damagesList = jsonResponse;
+    });
   }
 
-  Future<dynamic> getComplementary() async {
+  Future<String> getComplementary() async {
     var response = await http.get(Uri.encodeFull(complementaryUrl),
         headers: {"Accept": "application/json"});
     var jsonResponse = json.decode(response.body);
-    return jsonResponse;
+    setState(() {
+      isComplementaryLoading = false;
+      complementaryList = jsonResponse;
+    });
   }
 
   Future<dynamic> getUserAccounts() async {
     var response = await http.get(Uri.encodeFull(userAccountsUrl),
         headers: {"Accept": "application/json"});
     var jsonResponse = json.decode(response.body);
-    return jsonResponse;
+    setState(() {
+      isUserAccountsLoading = false;
+      userAccountsList = jsonResponse;
+    });
   }
 
   Future<dynamic> getProductsRunningOutOfStock() async {
     var response = await http.get(Uri.encodeFull(productsRunningOutOfStockUrl),
         headers: {"Accept": "application/json"});
     var jsonResponse = json.decode(response.body);
-    return jsonResponse;
+    setState(() {
+      isProductsRunningOutOfStockLoading = false;
+      productsRunningOutOfStockList = jsonResponse;
+    });
   }
 
   Future<dynamic> getProductsOutOfStock() async {
     var response = await http.get(Uri.encodeFull(productsOutOfStockUrl),
         headers: {"Accept": "application/json"});
     var jsonResponse = json.decode(response.body);
-    return jsonResponse;
+    setState(() {
+      isProductsOutOfStockLoading = false;
+      productsOutOfStockList = jsonResponse;
+    });
   }
 
   Future<String> logout() async {
@@ -4009,24 +4041,48 @@ class _MyHomePageState extends State<MyHomePage> {
       lastName = currentUser['last_name'];
       email = currentUser['email'];
     } catch (e) {}
+
+    this.getDebtors();
+    this.getDamages();
+    this.getComplementary();
+    this.getUserAccounts();
+    this.getProductsRunningOutOfStock();
+    this.getProductsOutOfStock();
+  }
+
+  void refreshPage() {
+    showMessage("Refreshing.....", Colors.orange);
+    setState(() {
+      isDebtorsLoading = true;
+      isDamagesLoading = true;
+      isComplementaryLoading = true;
+      isUserAccountsLoading = true;
+      isProductsRunningOutOfStockLoading = true;
+      isProductsOutOfStockLoading = true;
+    });
+
+    getDebtors();
+    getDamages();
+    getComplementary();
+    getUserAccounts();
+    getProductsRunningOutOfStock();
+    getProductsOutOfStock();
+  }
+
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    _scaffoldKey.currentState.showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
   }
 
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Mahara Wipha Bar"),
-        actions: <Widget>[
-          /*IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () {
-              getDebtors();
-            },
-          )*/
-        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Add your onPressed code here!
+          refreshPage();
         },
         child: Icon(Icons.refresh),
         backgroundColor: Colors.blue,
@@ -4036,7 +4092,6 @@ class _MyHomePageState extends State<MyHomePage> {
             crossAxisCount: 2,
             padding: EdgeInsets.all(16.0),
             childAspectRatio: 8.0 / 9.0,
-            // TODO: Build a grid of cards (102)
             children: <Widget>[
               Card(
                   clipBehavior: Clip.antiAlias,
@@ -4056,35 +4111,20 @@ class _MyHomePageState extends State<MyHomePage> {
                             children: <Widget>[
                               Text('Debtors'),
                               SizedBox(height: 8.0),
-                              FutureBuilder(
-                                future: getDebtors(),
-                                builder: (BuildContext context,
-                                    AsyncSnapshot snapshot) {
-                                  /*switch (snapshot.connectionState) {
-                                    case ConnectionState.none:
-                                      return Text('Press button to start.');
-                                    case ConnectionState.active:
-                                    case ConnectionState.waiting:
-                                      return Text('Awaiting result...');
-                                    case ConnectionState.done:
-                                      if (snapshot.hasError)
-                                        return Text('Error: ${snapshot.error}');
-                                      return Text('Result: ${snapshot.data}');
-                                  }*/
-
-                                  if (snapshot.hasData) {
-                                    return Text('${snapshot.data.length}',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold));
-                                  } else {
-                                    return Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  }
-                                },
+                              AnimatedOpacity(
+                                opacity:
+                                    (isDebtorsLoading == false) ? 1.0 : 0.0,
+                                duration: Duration(milliseconds: 100),
+                                child: Text("${debtorsList.length}",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
                               ),
-                              //Text('20',
-                              //style: TextStyle(fontWeight: FontWeight.bold)),
+                              AnimatedOpacity(
+                                opacity: (isDebtorsLoading == true) ? 1.0 : 0.0,
+                                duration: Duration(milliseconds: 100),
+                                child:
+                                    Center(child: CircularProgressIndicator()),
+                              ),
                             ],
                           ),
                         ),
@@ -4115,32 +4155,20 @@ class _MyHomePageState extends State<MyHomePage> {
                               children: <Widget>[
                                 Text('Damages'),
                                 SizedBox(height: 8.0),
-                                FutureBuilder(
-                                  future: getDamages(),
-                                  builder: (BuildContext context,
-                                      AsyncSnapshot snapshot) {
-                                    /*switch (snapshot.connectionState) {
-                                    case ConnectionState.none:
-                                      return Text('Press button to start.');
-                                    case ConnectionState.active:
-                                    case ConnectionState.waiting:
-                                      return Text('Awaiting result...');
-                                    case ConnectionState.done:
-                                      if (snapshot.hasError)
-                                        return Text('Error: ${snapshot.error}');
-                                      return Text('Result: ${snapshot.data}');
-                                  }*/
-
-                                    if (snapshot.hasData) {
-                                      return Text('${snapshot.data.length}',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold));
-                                    } else {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                  },
+                                AnimatedOpacity(
+                                  opacity:
+                                      (isDamagesLoading == false) ? 1.0 : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Text("${damagesList.length}",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                AnimatedOpacity(
+                                  opacity:
+                                      (isDamagesLoading == true) ? 1.0 : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Center(
+                                      child: CircularProgressIndicator()),
                                 ),
                               ],
                             ),
@@ -4172,32 +4200,22 @@ class _MyHomePageState extends State<MyHomePage> {
                               children: <Widget>[
                                 Text('Complementary'),
                                 SizedBox(height: 8.0),
-                                FutureBuilder(
-                                  future: getComplementary(),
-                                  builder: (BuildContext context,
-                                      AsyncSnapshot snapshot) {
-                                    /*switch (snapshot.connectionState) {
-                                    case ConnectionState.none:
-                                      return Text('Press button to start.');
-                                    case ConnectionState.active:
-                                    case ConnectionState.waiting:
-                                      return Text('Awaiting result...');
-                                    case ConnectionState.done:
-                                      if (snapshot.hasError)
-                                        return Text('Error: ${snapshot.error}');
-                                      return Text('Result: ${snapshot.data}');
-                                  }*/
-
-                                    if (snapshot.hasData) {
-                                      return Text('${snapshot.data.length}',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold));
-                                    } else {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                  },
+                                AnimatedOpacity(
+                                  opacity: (isComplementaryLoading == false)
+                                      ? 1.0
+                                      : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Text("${complementaryList.length}",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                AnimatedOpacity(
+                                  opacity: (isComplementaryLoading == true)
+                                      ? 1.0
+                                      : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Center(
+                                      child: CircularProgressIndicator()),
                                 ),
                               ],
                             ),
@@ -4229,32 +4247,22 @@ class _MyHomePageState extends State<MyHomePage> {
                               children: <Widget>[
                                 Text('User accounts'),
                                 SizedBox(height: 8.0),
-                                FutureBuilder(
-                                  future: getUserAccounts(),
-                                  builder: (BuildContext context,
-                                      AsyncSnapshot snapshot) {
-                                    /*switch (snapshot.connectionState) {
-                                    case ConnectionState.none:
-                                      return Text('Press button to start.');
-                                    case ConnectionState.active:
-                                    case ConnectionState.waiting:
-                                      return Text('Awaiting result...');
-                                    case ConnectionState.done:
-                                      if (snapshot.hasError)
-                                        return Text('Error: ${snapshot.error}');
-                                      return Text('Result: ${snapshot.data}');
-                                  }*/
-
-                                    if (snapshot.hasData) {
-                                      return Text('${snapshot.data.length}',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold));
-                                    } else {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                  },
+                                AnimatedOpacity(
+                                  opacity: (isUserAccountsLoading == false)
+                                      ? 1.0
+                                      : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Text("${userAccountsList.length}",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                AnimatedOpacity(
+                                  opacity: (isUserAccountsLoading == true)
+                                      ? 1.0
+                                      : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Center(
+                                      child: CircularProgressIndicator()),
                                 ),
                               ],
                             ),
@@ -4286,32 +4294,27 @@ class _MyHomePageState extends State<MyHomePage> {
                               children: <Widget>[
                                 Text('Products running out of stock'),
                                 SizedBox(height: 8.0),
-                                FutureBuilder(
-                                  future: getProductsRunningOutOfStock(),
-                                  builder: (BuildContext context,
-                                      AsyncSnapshot snapshot) {
-                                    /*switch (snapshot.connectionState) {
-                                    case ConnectionState.none:
-                                      return Text('Press button to start.');
-                                    case ConnectionState.active:
-                                    case ConnectionState.waiting:
-                                      return Text('Awaiting result...');
-                                    case ConnectionState.done:
-                                      if (snapshot.hasError)
-                                        return Text('Error: ${snapshot.error}');
-                                      return Text('Result: ${snapshot.data}');
-                                  }*/
-
-                                    if (snapshot.hasData) {
-                                      return Text('${snapshot.data.length}',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold));
-                                    } else {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                  },
+                                AnimatedOpacity(
+                                  opacity:
+                                      (isProductsRunningOutOfStockLoading ==
+                                              false)
+                                          ? 1.0
+                                          : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Text(
+                                      "${productsRunningOutOfStockList.length}",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                AnimatedOpacity(
+                                  opacity:
+                                      (isProductsRunningOutOfStockLoading ==
+                                              true)
+                                          ? 1.0
+                                          : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Center(
+                                      child: CircularProgressIndicator()),
                                 ),
                               ],
                             ),
@@ -4344,32 +4347,24 @@ class _MyHomePageState extends State<MyHomePage> {
                               children: <Widget>[
                                 Text('Products out of stock'),
                                 SizedBox(height: 8.0),
-                                FutureBuilder(
-                                  future: getProductsOutOfStock(),
-                                  builder: (BuildContext context,
-                                      AsyncSnapshot snapshot) {
-                                    /*switch (snapshot.connectionState) {
-                                    case ConnectionState.none:
-                                      return Text('Press button to start.');
-                                    case ConnectionState.active:
-                                    case ConnectionState.waiting:
-                                      return Text('Awaiting result...');
-                                    case ConnectionState.done:
-                                      if (snapshot.hasError)
-                                        return Text('Error: ${snapshot.error}');
-                                      return Text('Result: ${snapshot.data}');
-                                  }*/
-
-                                    if (snapshot.hasData) {
-                                      return Text('${snapshot.data.length}',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold));
-                                    } else {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                  },
+                                AnimatedOpacity(
+                                  opacity:
+                                      (isProductsOutOfStockLoading == false)
+                                          ? 1.0
+                                          : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Text(
+                                      "${productsOutOfStockList.length}",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                AnimatedOpacity(
+                                  opacity: (isProductsOutOfStockLoading == true)
+                                      ? 1.0
+                                      : 0.0,
+                                  duration: Duration(milliseconds: 100),
+                                  child: Center(
+                                      child: CircularProgressIndicator()),
                                 ),
                               ],
                             ),
