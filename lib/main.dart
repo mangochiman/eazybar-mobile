@@ -2147,6 +2147,8 @@ class _NewPricePageState extends State<NewPricePage> {
 
   Future _chooseDate(BuildContext context, String initialDateString) async {
     var now = new DateTime.now();
+    var lastDate = now.add(new Duration(days: 30));
+
     var initialDate = convertToDate(initialDateString) ?? now;
     initialDate = (initialDate.year >= 1900 && initialDate.isBefore(now)
         ? initialDate
@@ -2156,7 +2158,7 @@ class _NewPricePageState extends State<NewPricePage> {
         context: context,
         initialDate: initialDate,
         firstDate: new DateTime(1900),
-        lastDate: new DateTime.now());
+        lastDate: lastDate);
 
     if (result == null) return;
 
