@@ -38,6 +38,7 @@ String productsTotalURL = URL + '/api/v1/products_count';
 String authenticateUserURL = URL + '/api/v1/authenticate';
 String createStockURL = URL + '/api/v1/create_stock';
 String passwordReminderURL = URL + '/api/v1/reset_password';
+String newUserURL = URL + '/api/v1/new_user';
 
 void main() => runApp(MyApp());
 
@@ -2492,6 +2493,58 @@ class PriceHistoryService {
   }
 }
 
+class UserAccount {
+  String username = '';
+  String firstName = '';
+  String lastName = '';
+  String phoneNumber;
+  String email = '';
+  String password = '';
+  String role = '';
+  var errors = [];
+}
+
+class UserAccountService {
+  static final _headers = {'Content-Type': 'application/json'};
+
+  Future<UserAccount> createUserAccount(UserAccount user) async {
+    String json = _toJson(user);
+    final response = await http.post(newUserURL, headers: _headers, body: json);
+    var serverResponse = _fromJson(response.body);
+
+    return serverResponse;
+  }
+
+  UserAccount _fromJson(String json) {
+    Map<String, dynamic> map = jsonDecode(json);
+    var user = new UserAccount();
+    if (map['errors'] != null && map["errors"].length > 0) {
+      user.errors = map['errors'];
+    } else {
+      user.username = map['username'];
+      user.firstName = map['first_name'];
+      user.lastName = map['last_name'];
+      user.phoneNumber = map['phone_number'];
+      user.email = map['email'];
+      user.role = map['role'];
+    }
+    return user;
+  }
+
+  String _toJson(UserAccount user) {
+    var mapData = new Map();
+    mapData["username"] = user.username;
+    mapData["first_name"] = user.firstName;
+    mapData["last_name"] = user.lastName;
+    mapData["phone_number"] = user.phoneNumber;
+    mapData["email"] = user.email;
+    mapData["role"] = user.role;
+    mapData["password"] = user.password;
+    String json = jsonEncode(mapData);
+    return json;
+  }
+}
+
 class Product {
   String name;
   var category = '';
@@ -2716,12 +2769,177 @@ class NewUserAccountPage extends StatefulWidget {
 
 class _NewUserAccountPageState extends State<NewUserAccountPage> {
   @override
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final passwordFieldController = new TextEditingController();
+  final passwordConfirmFieldControllerController = new TextEditingController();
+  List<String> _roles = <String>['', 'Admin', 'Staff'];
+  String _role = '';
+  UserAccount user = new UserAccount();
+
+  void showMessage(String message, [MaterialColor color = Colors.red]) {
+    _scaffoldKey.currentState.showSnackBar(
+        new SnackBar(backgroundColor: color, content: new Text(message)));
+  }
+
+  void _submitForm() {
+    if (_role.length == 0) {
+      showMessage('Form is not valid!  Please review and correct.');
+      return null;
+    }
+
+    final FormState form = _formKey.currentState;
+
+    if (!form.validate()) {
+      showMessage('Form is not valid!  Please review and correct.');
+    } else {
+      form.save(); //This invokes each onSaved event
+      bool emailValid = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+          .hasMatch(user.email);
+
+      if (!emailValid) {
+        showMessage('The email entered is not valid', Colors.orange);
+        return null;
+      }
+
+      if (user.password != passwordConfirmFieldControllerController.text) {
+        showMessage('Confirm password is not equal to password', Colors.orange);
+        return null;
+      }
+
+      var userAccountService = new UserAccountService();
+      userAccountService.createUserAccount(user).then((value) {
+        if (value.errors != null && value.errors.length > 0) {
+          showMessage('Errors:\n ${value.errors.join('\n')}', Colors.red);
+        } else {
+          showMessage(
+              '${value.username} was successfully created', Colors.blue);
+          form.reset();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MyHomePage()),
+          );
+        }
+      });
+    }
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('New user account'),
       ),
-      body: Center(),
+      body: SafeArea(
+          top: false,
+          bottom: false,
+          child: new Form(
+              key: _formKey,
+              autovalidate: true,
+              child: new ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  children: <Widget>[
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.info),
+                          hintText: 'Username',
+                          labelText: 'Username',
+                        ),
+                        validator: (val) =>
+                            val.isEmpty ? 'Username is required' : null,
+                        onSaved: (val) => user.username = val),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.info),
+                          hintText: 'Email',
+                          labelText: 'Email',
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (val) =>
+                            val.isEmpty ? 'Email is required' : null,
+                        onSaved: (val) => user.email = val),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.info),
+                          hintText: 'First name',
+                          labelText: 'First name',
+                        ),
+                        validator: (val) =>
+                            val.isEmpty ? 'First name is required' : null,
+                        onSaved: (val) => user.firstName = val),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.info),
+                          hintText: 'Last name',
+                          labelText: 'Last name',
+                        ),
+                        onSaved: (val) => user.lastName = val),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.info),
+                          hintText: 'Phone #',
+                          labelText: 'Phone #',
+                        ),
+                        keyboardType: TextInputType.phone,
+                        onSaved: (val) => user.phoneNumber = val),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.info),
+                          hintText: 'Password',
+                          labelText: 'Password',
+                        ),
+                        validator: (val) =>
+                            val.isEmpty ? 'Password is required' : null,
+                        onSaved: (val) => user.password = val),
+                    new TextFormField(
+                        decoration: const InputDecoration(
+                          icon: const Icon(Icons.info),
+                          hintText: 'Confirm password',
+                          labelText: 'Confirm password',
+                        ),
+                        controller: passwordConfirmFieldControllerController,
+                        validator: (val) => val.isEmpty
+                            ? 'Confirm password is required'
+                            : null),
+                    new FormField(builder: (FormFieldState state) {
+                      return InputDecorator(
+                        decoration: InputDecoration(
+                          icon: const Icon(Icons.info),
+                          labelText: 'Select role',
+                        ),
+                        isEmpty: _role == '',
+                        child: new DropdownButtonHideUnderline(
+                          child: new DropdownButton(
+                            value: _role,
+                            isDense: true,
+                            onChanged: (String newValue) {
+                              setState(() {
+                                user.role = newValue;
+                                _role = newValue;
+                                state.didChange(newValue);
+                              });
+                            },
+                            items: _roles.map((String value) {
+                              return new DropdownMenuItem(
+                                value: value,
+                                child: new Text(value),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      );
+                    }, validator: (val) {
+                      return val != '' ? null : 'Please select role';
+                    }),
+                    new Container(
+                        padding: const EdgeInsets.only(left: 40.0, top: 20.0),
+                        child: new RaisedButton(
+                          child: const Text('Submit'),
+                          onPressed: () {
+                            _submitForm();
+                          },
+                        ))
+                  ]))),
     );
   }
 }
@@ -3754,6 +3972,16 @@ class _UserAccountsPageState extends State<UserAccountsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('User accounts'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => NewUserAccountPage()),
+          );
+        },
+        child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
       ),
       body: Container(
         padding: EdgeInsets.only(top: 10.0),
