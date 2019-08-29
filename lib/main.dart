@@ -4,6 +4,8 @@ import 'dart:convert'; //it allows us to convert our json to a list
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 
 const String URL = "http://192.168.12.69:2000";
 //const String URL = "http://71.19.148.18:5000";
@@ -39,6 +41,9 @@ String authenticateUserURL = URL + '/api/v1/authenticate';
 String createStockURL = URL + '/api/v1/create_stock';
 String passwordReminderURL = URL + '/api/v1/reset_password';
 String newUserURL = URL + '/api/v1/new_user';
+String debtorPaymentsOnDateURL = URL + '/api/v1/debtor_payments_on_date';
+
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
 void main() => runApp(MyApp());
 
@@ -4158,7 +4163,10 @@ String firstName;
 String lastName;
 String email;
 
+var notificationID = 1;
+
 class _MyHomePageState extends State<MyHomePage> {
+  static const methodChannel = const MethodChannel('com.webtechmw');
   final prefs = SharedPreferences.getInstance();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   List debtorsList = [];
@@ -4174,6 +4182,12 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isUserAccountsLoading = true;
   bool isProductsRunningOutOfStockLoading = true;
   bool isProductsOutOfStockLoading = true;
+
+  _MyHomePageState() {
+    methodChannel.setMethodCallHandler((call) {
+      _showNotificationWithDefaultSound();
+    });
+  }
 
   Future<String> checkIfUserIsAuthenticated() async {
     final prefs = await SharedPreferences.getInstance();
@@ -4263,7 +4277,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     this.checkIfUserIsAuthenticated();
-
     try {
       firstName = currentUser['first_name'];
       lastName = currentUser['last_name'];
@@ -4276,6 +4289,86 @@ class _MyHomePageState extends State<MyHomePage> {
     this.getUserAccounts();
     this.getProductsRunningOutOfStock();
     this.getProductsOutOfStock();
+
+    var initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettingsIOS = IOSInitializationSettings();
+
+    var initializationSettings = InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+
+    flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
+  }
+
+  Future onSelectNotification(String position) async {
+    int pos = int.parse(position);
+    showDialog(
+      context: context,
+      builder: (_) {
+        return new AlertDialog(
+          title: Text("Details"),
+          content: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                Text("Debtor : " + debtorPaymentsOnDateData[pos]["debtor"]),
+                Text("Amount paid : " + debtorPaymentsOnDateData[pos]["amount_paid"]),
+                Text("Balance due : " + debtorPaymentsOnDateData[pos]["balance_due"]),
+                Text("Amount owed : " + debtorPaymentsOnDateData[pos]["amount_owed"]),
+                Text("Date owed : " + debtorPaymentsOnDateData[pos]["date_owed"]),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> debtorPaymentNotification(List debtorPayments) async {
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+        'your channel id', 'your channel name', 'your channel description',
+        importance: Importance.Max, priority: Priority.High);
+
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+
+    var platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+
+    if (debtorPayments.length > 0) {
+      int position = debtorPayments.length - 1;
+      var payment = debtorPayments.removeLast();
+      var debtorPaymentID = payment["debtor_payment_id"];
+      var debtor = payment["debtor"];
+      var balanceDue = payment["balance_due"];
+      var amountPaid = payment["amount_paid"];
+      var amountOwed = payment["amount_owed"];
+      var datePaid = payment["date_paid"];
+      var dateOwed = payment["date_owed"];
+
+      await flutterLocalNotificationsPlugin.show(
+        debtorPaymentID,
+        "Debt payment",
+        "$debtor has paid $amountPaid Balance due: $balanceDue Amount owed: $amountOwed Date owed: $dateOwed",
+        platformChannelSpecifics,
+        payload: position.toString(),
+      );
+
+      debtorPaymentNotification(debtorPayments);
+    }
+  }
+
+  List debtorPaymentsOnDateData;
+
+  Future _showNotificationWithDefaultSound() async {
+    var response = await http.get(
+        Uri.encodeFull(
+            debtorPaymentsOnDateURL + "?date=" + new DateTime.now().toString()),
+        headers: {"Accept": "application/json"});
+
+    debtorPaymentsOnDateData = json.decode(response.body);
+    var debtorPaymentsOnDate = json.decode(response.body);
+    debtorPaymentNotification(debtorPaymentsOnDate);
   }
 
   void refreshPage() {
