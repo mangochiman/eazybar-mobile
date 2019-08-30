@@ -4304,6 +4304,30 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future onSelectNotification(String position) async {
     int pos = int.parse(position);
+    String today = DateFormat("yyyy-MM-dd")
+        .format(DateTime.parse(DateTime.now().toIso8601String()));
+
+    final prefs = await SharedPreferences.getInstance();
+    final payments = prefs.getString('payments') ?? null;
+    var debtorPaymentID = debtorPaymentsOnDateData[pos]["debtor_payment_id"];
+    if (payments == null) {
+      Map seenPayments = {};
+      seenPayments[today] = [];
+      seenPayments[today].add(debtorPaymentID);
+      String seenPaymentsString = json.encode(seenPayments);
+      prefs.setString("payments", seenPaymentsString);
+    } else {
+      var seenPayments = jsonDecode(payments);
+      if (seenPayments[today] == null) {
+        seenPayments[today] = [];
+        seenPayments[today].add(debtorPaymentID);
+      } else {
+        seenPayments[today].add(debtorPaymentID);
+      }
+      String seenPaymentsString = json.encode(seenPayments);
+      prefs.setString("payments", seenPaymentsString);
+    }
+
     showDialog(
       context: context,
       builder: (_) {
@@ -4313,10 +4337,14 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               children: <Widget>[
                 Text("Debtor : " + debtorPaymentsOnDateData[pos]["debtor"]),
-                Text("Amount paid : " + debtorPaymentsOnDateData[pos]["amount_paid"]),
-                Text("Balance due : " + debtorPaymentsOnDateData[pos]["balance_due"]),
-                Text("Amount owed : " + debtorPaymentsOnDateData[pos]["amount_owed"]),
-                Text("Date owed : " + debtorPaymentsOnDateData[pos]["date_owed"]),
+                Text("Amount paid : " +
+                    debtorPaymentsOnDateData[pos]["amount_paid"]),
+                Text("Balance due : " +
+                    debtorPaymentsOnDateData[pos]["balance_due"]),
+                Text("Amount owed : " +
+                    debtorPaymentsOnDateData[pos]["amount_owed"]),
+                Text("Date owed : " +
+                    debtorPaymentsOnDateData[pos]["date_owed"]),
               ],
             ),
           ),
@@ -4335,6 +4363,11 @@ class _MyHomePageState extends State<MyHomePage> {
     var platformChannelSpecifics = new NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
 
+    final prefs = await SharedPreferences.getInstance();
+    final payments = prefs.getString('payments') ?? null;
+    String today = DateFormat("yyyy-MM-dd")
+        .format(DateTime.parse(DateTime.now().toIso8601String()));
+
     if (debtorPayments.length > 0) {
       int position = debtorPayments.length - 1;
       var payment = debtorPayments.removeLast();
@@ -4345,14 +4378,26 @@ class _MyHomePageState extends State<MyHomePage> {
       var amountOwed = payment["amount_owed"];
       var datePaid = payment["date_paid"];
       var dateOwed = payment["date_owed"];
+      bool isSeen = false;
 
-      await flutterLocalNotificationsPlugin.show(
-        debtorPaymentID,
-        "Debt payment",
-        "$debtor has paid $amountPaid Balance due: $balanceDue Amount owed: $amountOwed Date owed: $dateOwed",
-        platformChannelSpecifics,
-        payload: position.toString(),
-      );
+      if (payments != null) {
+        var seenPayments = jsonDecode(payments);
+        if (seenPayments[today] != null) {
+          if (seenPayments[today].contains(debtorPaymentID)) {
+            isSeen = true;
+          }
+        }
+      }
+
+      if (!isSeen) {
+        await flutterLocalNotificationsPlugin.show(
+          debtorPaymentID,
+          "Debt payment",
+          "$debtor has paid $amountPaid Balance due: $balanceDue Amount owed: $amountOwed Date owed: $dateOwed",
+          platformChannelSpecifics,
+          payload: position.toString(),
+        );
+      }
 
       debtorPaymentNotification(debtorPayments);
     }
