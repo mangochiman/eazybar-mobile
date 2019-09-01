@@ -6,9 +6,11 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
-const String URL = "http://192.168.12.69:2000";
+const String URL = "http://192.168.43.102:2000";
 //const String URL = "http://71.19.148.18:5000";
+//const String URL = "http://71.19.148.18:3000";
 
 String debtorsUrl = URL + '/api/v1/debtors';
 String damagesUrl = URL + '/api/v1/damages';
@@ -4440,11 +4442,31 @@ class _MyHomePageState extends State<MyHomePage> {
         new SnackBar(backgroundColor: color, content: new Text(message)));
   }
 
+  void showMenuSelection(String value) {
+    if (value == 'graph') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SalesGraph()),
+      );
+    }
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Mahara Wipha Bar"),
+        actions: <Widget>[
+          PopupMenuButton<String>(
+              padding: EdgeInsets.zero,
+              onSelected: showMenuSelection,
+              itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
+                    PopupMenuItem<String>(
+                      value: 'graph',
+                      child: const Text('Sales graph'),
+                    ),
+                  ])
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -5099,4 +5121,89 @@ class LoginState extends State<LoginPage> {
           }),
     );
   }
+}
+
+//charts
+
+class SalesGraph extends StatefulWidget {
+  @override
+  _SalesGraphState createState() => _SalesGraphState();
+}
+
+class _SalesGraphState extends State<SalesGraph> {
+  final mockedData = [
+    new TimeSeriesSales(new DateTime(2017, 9, 1), 5),
+    new TimeSeriesSales(new DateTime(2017, 9, 2), 25),
+    new TimeSeriesSales(new DateTime(2017, 9, 3), 100),
+    new TimeSeriesSales(new DateTime(2017, 9, 4), 75),
+    new TimeSeriesSales(new DateTime(2017, 9, 5), 200),
+    new TimeSeriesSales(new DateTime(2017, 9, 6), 208),
+    new TimeSeriesSales(new DateTime(2017, 9, 7), 80),
+    new TimeSeriesSales(new DateTime(2017, 9, 8), 89),
+    new TimeSeriesSales(new DateTime(2017, 9, 9), 75),
+    new TimeSeriesSales(new DateTime(2017, 9, 10), 76),
+    new TimeSeriesSales(new DateTime(2017, 9, 11), 43),
+    new TimeSeriesSales(new DateTime(2017, 9, 12), 32),
+    new TimeSeriesSales(new DateTime(2017, 9, 13), 89),
+    new TimeSeriesSales(new DateTime(2017, 9, 14), 98),
+    new TimeSeriesSales(new DateTime(2017, 9, 15), 93),
+  ];
+
+  /*
+  List<TimeSeriesPrice> data = [];
+// populate data with a list of dates and prices from the json
+for (Map m in dataJSON) {
+  data.add(TimeSeriesPrice(m['date'], m['price']);
+}
+  * */
+
+  /// Create one series with pass in data.
+  List<charts.Series<TimeSeriesSales, DateTime>> mapChartData(
+      List<TimeSeriesSales> data) {
+    return [
+      charts.Series<TimeSeriesSales, DateTime>(
+        id: 'Sales',
+        colorFn: (_, __) => charts.MaterialPalette.indigo.shadeDefault,
+        domainFn: (TimeSeriesSales sales, _) => sales.time,
+        measureFn: (TimeSeriesSales sales, _) => sales.sales,
+        data: data,
+      )
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Monthly sales"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(40.0),
+        child: SimpleBarChart(mapChartData(mockedData)),
+      ),
+    );
+  }
+}
+
+class SimpleBarChart extends StatelessWidget {
+  final List<charts.Series> seriesList;
+  final bool animate;
+
+  SimpleBarChart(this.seriesList, {this.animate = true});
+
+  @override
+  Widget build(BuildContext context) {
+    return charts.TimeSeriesChart(
+      seriesList,
+      animate: animate,
+        dateTimeFactory: const charts.LocalDateTimeFactory()
+    );
+  }
+}
+
+class TimeSeriesSales {
+  final DateTime time;
+  final int sales;
+
+  TimeSeriesSales(this.time, this.sales);
 }
