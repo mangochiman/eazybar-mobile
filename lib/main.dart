@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 const String URL = "http://192.168.43.102:2000";
 //const String URL = "http://71.19.148.18:5000";
@@ -5171,11 +5173,29 @@ for (Map m in dataJSON) {
     ];
   }
 
+  Future showMonthAndYearPicker(BuildContext context) async {
+    var now = new DateTime.now();
+    var result = await showMonthPicker(context: context, initialDate: now);
+    if (result == null) return;
+    var date = DateFormat("yyyy-MM-dd")
+        .format(DateTime.parse(result.toIso8601String()));
+    print(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Monthly sales"),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: () {
+              //_chooseDate(context, _controller.text);
+              showMonthAndYearPicker(context);
+            },
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(40.0),
@@ -5193,11 +5213,8 @@ class SimpleBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return charts.TimeSeriesChart(
-      seriesList,
-      animate: animate,
-        dateTimeFactory: const charts.LocalDateTimeFactory()
-    );
+    return charts.TimeSeriesChart(seriesList,
+        animate: animate, dateTimeFactory: const charts.LocalDateTimeFactory());
   }
 }
 
