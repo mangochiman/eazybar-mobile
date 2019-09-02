@@ -10,7 +10,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
-const String URL = "http://192.168.43.102:2000";
+const String URL = "http://192.168.12.69:2000";
 //const String URL = "http://71.19.148.18:5000";
 //const String URL = "http://71.19.148.18:3000";
 
@@ -46,6 +46,7 @@ String createStockURL = URL + '/api/v1/create_stock';
 String passwordReminderURL = URL + '/api/v1/reset_password';
 String newUserURL = URL + '/api/v1/new_user';
 String debtorPaymentsOnDateURL = URL + '/api/v1/debtor_payments_on_date';
+String monthlySalesURL = URL + '/api/v1/get_monthly_sales';
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -5132,34 +5133,34 @@ class SalesGraph extends StatefulWidget {
   _SalesGraphState createState() => _SalesGraphState();
 }
 
+var thisMonthText = "";
+
 class _SalesGraphState extends State<SalesGraph> {
-  final mockedData = [
-    new TimeSeriesSales(new DateTime(2017, 9, 1), 5),
-    new TimeSeriesSales(new DateTime(2017, 9, 2), 25),
-    new TimeSeriesSales(new DateTime(2017, 9, 3), 100),
-    new TimeSeriesSales(new DateTime(2017, 9, 4), 75),
-    new TimeSeriesSales(new DateTime(2017, 9, 5), 200),
-    new TimeSeriesSales(new DateTime(2017, 9, 6), 208),
-    new TimeSeriesSales(new DateTime(2017, 9, 7), 80),
-    new TimeSeriesSales(new DateTime(2017, 9, 8), 89),
-    new TimeSeriesSales(new DateTime(2017, 9, 9), 75),
-    new TimeSeriesSales(new DateTime(2017, 9, 10), 76),
-    new TimeSeriesSales(new DateTime(2017, 9, 11), 43),
-    new TimeSeriesSales(new DateTime(2017, 9, 12), 32),
-    new TimeSeriesSales(new DateTime(2017, 9, 13), 89),
-    new TimeSeriesSales(new DateTime(2017, 9, 14), 98),
-    new TimeSeriesSales(new DateTime(2017, 9, 15), 93),
-  ];
+  List<TimeSeriesSales> sales = [];
 
-  /*
-  List<TimeSeriesPrice> data = [];
-// populate data with a list of dates and prices from the json
-for (Map m in dataJSON) {
-  data.add(TimeSeriesPrice(m['date'], m['price']);
-}
-  * */
+  Future<void> getMonthlySales(String date) async {
+    setState(() {
+      sales = [];
+    });
+    var response = await http.get(
+        Uri.encodeFull(monthlySalesURL + "?date=" + date),
+        headers: {"Accept": "application/json"});
+    var jsonResponse = json.decode(response.body);
+    var totalSales = jsonResponse["total_sales"];
+    var xAxis = jsonResponse["xaxis"];
+    var thisMonth = jsonResponse["this_month"];
+    setState(() {
+      thisMonthText = thisMonth;
+    });
+    for (var i = 0; i <= totalSales.length - 1; i++) {
+      DateTime yValue = DateTime.parse(xAxis[i]);
+      double xValue = double.parse(totalSales[i].toString());
+      setState(() {
+        sales.add(TimeSeriesSales(yValue, xValue));
+      });
+    }
+  }
 
-  /// Create one series with pass in data.
   List<charts.Series<TimeSeriesSales, DateTime>> mapChartData(
       List<TimeSeriesSales> data) {
     return [
@@ -5179,14 +5180,20 @@ for (Map m in dataJSON) {
     if (result == null) return;
     var date = DateFormat("yyyy-MM-dd")
         .format(DateTime.parse(result.toIso8601String()));
-    print(date);
+    getMonthlySales(date);
   }
 
   @override
+
+  void initState() {
+    var date = new DateTime.now().toIso8601String();
+    getMonthlySales(date);
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Monthly sales"),
+        title: Text("Monthly sales - " + thisMonthText),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.calendar_today),
@@ -5199,7 +5206,7 @@ for (Map m in dataJSON) {
       ),
       body: Padding(
         padding: const EdgeInsets.all(40.0),
-        child: SimpleBarChart(mapChartData(mockedData)),
+        child: SimpleBarChart(mapChartData(sales)),
       ),
     );
   }
@@ -5220,7 +5227,7 @@ class SimpleBarChart extends StatelessWidget {
 
 class TimeSeriesSales {
   final DateTime time;
-  final int sales;
+  final double sales;
 
   TimeSeriesSales(this.time, this.sales);
 }
