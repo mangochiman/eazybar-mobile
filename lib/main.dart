@@ -5137,6 +5137,7 @@ var thisMonthText = "";
 
 class _SalesGraphState extends State<SalesGraph> {
   List<TimeSeriesSales> sales = [];
+  bool isLoading = true;
 
   Future<void> getMonthlySales(String date) async {
     setState(() {
@@ -5145,6 +5146,9 @@ class _SalesGraphState extends State<SalesGraph> {
     var response = await http.get(
         Uri.encodeFull(monthlySalesURL + "?date=" + date),
         headers: {"Accept": "application/json"});
+    setState(() {
+      isLoading = false;
+    });
     var jsonResponse = json.decode(response.body);
     var totalSales = jsonResponse["total_sales"];
     var xAxis = jsonResponse["xaxis"];
@@ -5175,6 +5179,9 @@ class _SalesGraphState extends State<SalesGraph> {
   }
 
   Future showMonthAndYearPicker(BuildContext context) async {
+    setState(() {
+      isLoading = true;
+    });
     var now = new DateTime.now();
     var result = await showMonthPicker(context: context, initialDate: now);
     if (result == null) return;
@@ -5184,7 +5191,6 @@ class _SalesGraphState extends State<SalesGraph> {
   }
 
   @override
-
   void initState() {
     var date = new DateTime.now().toIso8601String();
     getMonthlySales(date);
@@ -5204,9 +5210,27 @@ class _SalesGraphState extends State<SalesGraph> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(40.0),
-        child: SimpleBarChart(mapChartData(sales)),
+      body: Container(
+        padding: EdgeInsets.only(top: 40.0),
+        color: Colors.blueGrey[50],
+        child: Container(
+          child: new Stack(
+            children: <Widget>[
+              AnimatedOpacity(
+                opacity: (isLoading == false) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Container(child: SimpleBarChart(mapChartData(sales))),
+              ),
+              AnimatedOpacity(
+                opacity: (isLoading == true) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
