@@ -5138,10 +5138,12 @@ var thisMonthText = "";
 class _SalesGraphState extends State<SalesGraph> {
   List<TimeSeriesSales> sales = [];
   bool isLoading = true;
+  bool salesAvailable = false;
 
   Future<void> getMonthlySales(String date) async {
     setState(() {
       sales = [];
+      salesAvailable = false;
     });
     var response = await http.get(
         Uri.encodeFull(monthlySalesURL + "?date=" + date),
@@ -5159,6 +5161,11 @@ class _SalesGraphState extends State<SalesGraph> {
     for (var i = 0; i <= totalSales.length - 1; i++) {
       DateTime yValue = DateTime.parse(xAxis[i]);
       double xValue = double.parse(totalSales[i].toString());
+      if (xValue > 0){
+        setState(() {
+          salesAvailable = true;
+        });
+      }
       setState(() {
         sales.add(TimeSeriesSales(yValue, xValue));
       });
@@ -5217,9 +5224,14 @@ class _SalesGraphState extends State<SalesGraph> {
           child: new Stack(
             children: <Widget>[
               AnimatedOpacity(
-                opacity: (isLoading == false) ? 1.0 : 0.0,
+                opacity: (isLoading == false && salesAvailable == true) ? 1.0 : 0.0,
                 duration: Duration(milliseconds: 500),
                 child: Container(child: SimpleBarChart(mapChartData(sales))),
+              ),
+              AnimatedOpacity(
+                opacity: (isLoading == false && salesAvailable == false) ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Center(child: Text("No sales available")),
               ),
               AnimatedOpacity(
                 opacity: (isLoading == true) ? 1.0 : 0.0,
