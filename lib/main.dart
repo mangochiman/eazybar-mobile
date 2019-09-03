@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 const String URL = "http://192.168.12.69:2000";
@@ -5161,7 +5160,7 @@ class _SalesGraphState extends State<SalesGraph> {
     for (var i = 0; i <= totalSales.length - 1; i++) {
       DateTime yValue = DateTime.parse(xAxis[i]);
       double xValue = double.parse(totalSales[i].toString());
-      if (xValue > 0){
+      if (xValue > 0) {
         setState(() {
           salesAvailable = true;
         });
@@ -5172,6 +5171,7 @@ class _SalesGraphState extends State<SalesGraph> {
     }
   }
 
+  var selectedSalesDate = new DateTime.now();
   List<charts.Series<TimeSeriesSales, DateTime>> mapChartData(
       List<TimeSeriesSales> data) {
     return [
@@ -5189,11 +5189,18 @@ class _SalesGraphState extends State<SalesGraph> {
     setState(() {
       isLoading = true;
     });
-    var now = new DateTime.now();
-    var result = await showMonthPicker(context: context, initialDate: now);
-    if (result == null) return;
+
+    var result = await showMonthPicker(context: context, initialDate: selectedSalesDate);
+    if (result == null) {
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
     var date = DateFormat("yyyy-MM-dd")
         .format(DateTime.parse(result.toIso8601String()));
+    selectedSalesDate = DateTime.parse(date);
     getMonthlySales(date);
   }
 
@@ -5218,18 +5225,24 @@ class _SalesGraphState extends State<SalesGraph> {
         ],
       ),
       body: Container(
-        padding: EdgeInsets.only(top: 40.0),
+        padding: EdgeInsets.all(40.0),
         color: Colors.blueGrey[50],
         child: Container(
+          constraints: BoxConstraints.expand(
+            //width: 350.0,
+            height: 400.0,
+          ),
           child: new Stack(
             children: <Widget>[
               AnimatedOpacity(
-                opacity: (isLoading == false && salesAvailable == true) ? 1.0 : 0.0,
+                opacity:
+                    (isLoading == false && salesAvailable == true) ? 1.0 : 0.0,
                 duration: Duration(milliseconds: 500),
                 child: Container(child: SimpleBarChart(mapChartData(sales))),
               ),
               AnimatedOpacity(
-                opacity: (isLoading == false && salesAvailable == false) ? 1.0 : 0.0,
+                opacity:
+                    (isLoading == false && salesAvailable == false) ? 1.0 : 0.0,
                 duration: Duration(milliseconds: 500),
                 child: Center(child: Text("No sales available")),
               ),
